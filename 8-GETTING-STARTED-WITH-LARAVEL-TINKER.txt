@@ -1,0 +1,873 @@
+
+
+
+
+
+
+
+
+
+
+há vezes que vamos querer rodar php code no terminal...
+
+
+
+
+
+
+
+talvez para quick debugging, testing, experimentar coisas...
+
+
+
+
+
+
+
+
+
+
+--> seria melhor se pudéssemos interagir com nosso app laravel 
+
+diretamente da command line... e podemos fazer isso, no laravel,
+ 
+ por meio do tinker...
+
+
+
+
+
+
+
+
+
+
+
+
+TINKER --> É UM READ-EVAL-PRINT-LOOP,
+
+
+
+
+ou REPL...
+
+
+
+
+ele vem, por default,
+
+
+no laravel...
+
+
+
+
+
+
+
+
+
+
+-> no composer.json,
+
+
+podemos encontrar o 
+
+
+
+tinker,
+
+
+
+
+nesta parte:
+
+
+
+
+
+
+{
+    "$schema": "https://getcomposer.org/schema.json",
+    "name": "laravel/laravel",
+    "type": "project",
+    "description": "The skeleton application for the Laravel framework.",
+    "keywords": ["laravel", "framework"],
+    "license": "MIT",
+    "require": {
+        "php": "^8.2",
+        "laravel/framework": "^11.31",
+        "laravel/tinker": "^2.9"
+    },
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+certo..
+
+
+
+
+
+
+
+
+
+
+
+
+1 REPL é um environment de programação interativo,
+
+
+que basicamente pega o input do user,
+
+executa o input,
+
+e aí 
+
+retorna o resultado do output... e repete isso,
+
+em 1 loop contínuo...
+
+
+
+
+
+
+--> PENSE NISSO COMO 1 CONCEITO 
+
+NÃO ESPECÍFICO AO PHP (no php, temos o package de 'psysh'  
+                    , que é a implementaçaõ de repl do php)...
+
+
+
+
+
+-> O LARAVEL TINKER É 
+
+    POWERED PELO PSYSH,
+
+
+    MAS OFERECE FEATURES ADICIONAIS,
+
+    PRÓPRIAS PARA APPS LARAVEL...
+
+
+
+
+
+--> O QUE ACONTECE É QUE, QUANDO VC INICIA O TINKER,
+
+    ele boota 1 laravel app,
+
+    deixando interação direta com 
+
+    o service container do seu app... isso quer dizer que 
+    vc pode 
+
+    usar:
+
+    1) LARAVEL FACADES 
+
+    2) ELOQUENT MODELS 
+
+    3) OTHER SERVICES,
+
+
+
+    TUDO DIRETAMENTE DA CLI...
+
+
+
+
+    VC PODE:
+
+
+    4) MANIPULATE CONFIGURATIONS 
+
+    5) INTERACT WITH DB RECORDS, THROUGH ORM 
+
+    6) EXECUTE ARTISAN COMMANDS 
+
+
+    e assim por diante...
+
+
+
+
+
+
+
+
+
+O TINKER BASICAMENTE NOS DEIXA INTERAGIR COM O 
+LARAVEL APP,
+
+
+O QUE NOS AJUDA A EXPERIMENTAR E DEBUG..
+
+
+
+
+
+
+
+
+
+
+
+-> PARA ENTRAR NO TINKER ENVIRONMENT,
+
+    DEVEMOS USAR O COMANDO 
+
+
+    php artisan tinker 
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+ 
+
+
+
+
+
+PS C:\Users\Usuario\Desktop\NOVAS AULAS LARAVEL\relearning-laravel\gio-example> php 
+artisan tinker
+Psy Shell v0.12.5 (PHP 8.3.11 — cli) by Justin Hileman
+>
+
+
+
+
+
+
+
+NESSA SHELL,
+
+PODEMOS ESCREVER CÓDIGO PHP E TER RESULTADOS IMEDIATAMENTE..
+
+
+
+
+
+
+
+
+
+-> DIGAMOS QUE QUEREMOS VER A CURRENT DATE,
+
+
+BASTA ESCREVER ASSIM:
+
+
+date('m/d/Y')
+
+
+
+PS C:\Users\Usuario\Desktop\NOVAS AULAS LARAVEL\relearning-laravel\gio-example> php 
+artisan tinker
+Psy Shell v0.12.5 (PHP 8.3.11 — cli) by Justin Hileman
+> date('m/d/Y')
+= "11/29/2024"
+
+>
+
+
+
+
+
+
+
+
+PODEMOS ASSIGNAR ISSO A UMA VARIABLE,
+
+TIPO ASSIM:
+
+
+
+
+$date = date('m/d/Y')
+
+
+
+
+
+
+
+
+
+
+
+certo...
+
+
+
+
+
+
+
+ALÉM DE RODAR PHP,
+
+PODEMOS TAMBÉM 
+
+
+EXECUTAR 
+
+
+CÓDIGO ESPECÍFICO 
+
+
+AO LARAVEL...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+PODEMOS RODAR CÓDIGO ESPECÍFICO AO LARAVEL...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+PODEMOS PEGAR O NOME DE NOSSO APP,
+
+
+
+A PARTIR  DA FUNCTION DE 'config()',
+
+
+
+tipo assim:
+
+
+
+
+
+
+
+> config('app.name')
+= "Laravel"
+
+>
+
+
+
+
+
+
+
+
+
+PODEMOS CRIAR NOSSA PRÓPRIA CLASS,
+
+PARA TESTAR...
+
+
+
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR CRIA 1 CLASS 
+
+
+LÁ 
+
+
+EM 'Providers',
+
+
+de nome 'PaymentService'...
+
+
+
+
+
+
+ex:
+
+
+
+
+
+
+
+<?php
+
+
+declare(strict_types=1);
+
+namespace App;
+
+class PaymentService
+{
+
+}
+
+
+
+
+
+
+
+
+
+ADICIONAMOS 1 METHOD, DE NOME 'process'...
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+<?php
+
+
+declare(strict_types=1);
+
+namespace App;
+
+class PaymentService
+{
+
+    public function process(): bool
+    {
+        echo "Paid" . PHP_EOL;
+        return true;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+AÍ TENTAMOS 
+
+CRIAR 1 NOVA INSTANCE DESSA CLASS,
+
+DENTRO DO NOSSO TINKER ENVIRONMENT,
+
+PARA VER SE ISSO FUNCIONA...
+
+
+
+--> PARA ISSO, PRECISAMOS REINICIAR O TINKER...
+
+
+
+
+
+
+
+
+AÍ FICA TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+> $paymentService = new App\Providers\PaymentService()
+= App\Providers\PaymentService {#5209}
+
+>
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+FUNCIONOU...
+
+
+
+
+
+
+
+E PODEMOS RODAR O METHOD DE PROCESS NELE,
+
+PARA TESTAR:
+
+
+
+
+
+
+
+
+
+
+> $paymentService = new App\Providers\PaymentService()
+> $paymentService->process()
+Paid
+= true
+
+>
+
+
+
+
+
+
+
+
+
+
+CADA VEZ QUE MUDAMOS OS NOSSOS ARQUIVOS,
+
+PRECISAMOS RESTARTAR A TINKER SESSION...
+
+
+
+
+
+
+
+
+
+
+
+
+OK....
+
+
+
+
+
+
+
+
+É UMA MINOR INCONVENIENCE...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> TINKERWELL --> É UMA TOOL PAGA,
+
+                    QUE DEIXA VC RECARREGAR AUTOMATICAMENTE...
+
+
+
+
+
+
+
+
+
+
+TINKER --> TE DEIXA RODAR CÓDIGO PHP DENTRO DO REPL,    
+
+        E CÓDIGO LARAVEL TAMBÉM...
+
+
+
+
+
+
+--> O PROFESSOR VAI USAR O TINKER AO LONGO DO CURSO...
+
+
+
+
+
+
+
+
+
+-> MAIS ALGUMAS COISAS:
+
+
+
+
+
+
+--> O TINKER É INCAPAZ DE ENCONTRAR NAMESPACES AUTOMATICAMENTE...
+
+
+
+
+
+
+
+-> mas se tentamos rodar 
+
+
+
+./vendor/bin/sail composer dump-autoload,
+
+
+
+no terminal,
+
+
+
+
+para ver o que acontece...
+
+
+
+--> AÍ AS NOVAS CLASS MAP FILES SERÃO PRODUZIDAS,
+
+E AÍ O TINKER VAI CORRIGIR ESSE ERRO...
+
+
+
+(''laravel will generally try to autoalias classes, but sometimes 
+it won't be able to'')... 
+
+
+
+
+
+
+
+
+
+
+
+
+
+outra coisa:
+
+
+
+
+
+
+
+
+
+podemos rodar comandos artisan down e up 
+
+
+dentro do tinker,
+
+
+
+o que te deixa colocar seu app em 'maintenance mode',
+
+temporariamente...
+
+
+
+
+
+tipo assim:
+
+
+
+
+> $paymentService = new App\Providers\PaymentService()
+> $paymentService->process()
+Paid
+= true
+
+> down
+
+   INFO  Application is now in maintenance mode.
+
+>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> SE TENTAMOS ENTRAR NO NOSSO APP,
+
+QUANDO RODAMOS 'down' antes,
+
+
+
+não vamos conseguir,
+ele estará down...
+
+
+
+e com 'up',
+podemos 
+
+
+ligá-lo de novo...
+
+
+
+
+
+
+
+
+
+
+
+
+PODEMOS CRIAR COMANDOS TINKER CUSTOMIZADOS,
+
+
+
+
+para isso,
+
+devemos rodar 
+
+
+
+./vendor/bin/sail artisan vendor:publish --provider="Laravel\Tinker\TinkerServiceProvider" 
+
+
+
+
+
+
+
+ISSO VAI PUBLICAR OS ASSETS,
+
+PARA QUE VC POSSA ENTÃO REGISTRAR 
+
+
+COMMANDS CUSTOMIZADOS...
+
+
+
+
+
+
+
+
+--> esse arquivo vai existir 
+
+
+dentro de 
+
+
+'config\tinker.php'...
+
+
+
+
+
+
+
+
+
+-> AÍ TEMOS 
+
+
+
+
+UMA PARTE TIPO 
+
+
+'commands' => [
+        ExampleCommand::class 
+]
+
+
+
+
+
+
+
+
+
+-> ISSO TE DEIXA ADICIONAR ADDITIONAL COMMANDS,
+
+QUE DEVEM FICAR DISPONÍVEIS DENTRO DO TINKER ENVIRONMENT...
+
+
+
+
+
+--> veremos configuration, na próxima aula...
