@@ -1,0 +1,703 @@
+
+
+
+
+
+
+
+
+
+
+
+
+ok.. agora estudaremos a directory structure do laravel...
+
+
+
+
+
+
+
+
+
+
+--> TEMOS ISTO TUDO:
+
+
+
+
+
+app 
+bootstrap 
+config 
+database 
+public 
+resources
+routes 
+storage
+tests 
+vendor 
+.env
+artisan 
+docker-compose.yml 
+package.json...
+phpunit.xml
+vite.config.js
+
+
+
+
+
+
+
+
+
+
+
+DENTRO DE 'app',
+
+
+TEMOS 3 FOLDERS,
+
+
+
+'http',
+
+'Models' 
+
+e 
+
+'Providers'...
+
+
+
+
+
+
+
+
+
+
+--> MAS MAIS FOLDERS SERÃO ADICIONADOS, LÁ DENTRO,
+
+ASSIM QUE COMEÇARMOS A USAR O FRAMEWORK (php artisan make ...)
+
+
+
+
+
+
+
+
+
+
+
+
+-> O FOLDER DE APP VAI CONTER O CORE CODE DE SEU APP...
+
+
+
+
+
+
+
+
+-> NO HTTP DIRECTORY,
+
+
+POR ENQUANTO TEMOS APENAS 
+
+'Http>Controllers'...
+
+
+
+
+
+
+
+
+--> o folder de 'Http' contém basicamente 
+
+QUASE TODA A LÓGICA REQUEST-RELATED DO SEU APP...
+
+
+
+
+
+
+
+
+
+
+
+--> AÍ TEMOS O FOLDER DE 'Models',
+
+
+que contém todas as eloquent model classes do seu app...
+
+
+
+
+
+
+
+
+
+
+ELOQUENT É O ORM DO LARAVEL... BASICAMENTE, CADA TABLE 
+
+
+
+SQL TERÁ 1 MODEL, QUE SERÁ USADO PARA QUERY/UPDATE/INTERACT 
+
+COM AQUELA TABLE...
+
+
+
+
+
+
+
+POR DEFAULT, TEMOS APENAS 1 ÚNICO MODEL, DE 'User',
+
+QUE 
+
+É USADO PARA A TABLE DE 'User'...
+
+
+
+
+
+
+
+
+
+
+--> VÁRIAS COISAS DO LARAVEL SÃO CONVENTION-BASED...
+
+
+
+
+
+
+EX:
+
+
+User se relaciona 
+
+
+com a table 'users'...
+
+
+
+
+
+
+
+
+
+
+-> DEPOIS DISSO, TEMOS A PASTA DE 'Providers',
+
+
+onde temos os providers que nos ajudam a 'BOOTSTRAP'
+
+o nosso app...
+
+
+
+
+
+
+
+
+
+
+--> É CLARO QUE NEM TODOS SERVICE PROVIDERS 
+    PODEM SER ENCONTRADOS DENTRO 
+
+    DE ESSA PASTA... ISSO É PQ ALGUNS PROVIDERS 
+
+    SÃO FRAMEWORK-SPECIFIC... SÃO BUILT-IN...
+
+
+
+
+
+--> MAIS TARDE, QUANDO CRIARMOS NOSSOS PRÓPRIOS SERVICE PROVIDERS,
+    ELES SERÃO CRIADOS DENTRO DESSE FOLDER AÍ...
+
+
+
+
+
+
+
+
+
+
+--> TEMOS A PASTA DE 'bootstrap',
+
+
+QUE CONTÉM O ARQUIVO 'app.php',
+
+QUE É RESPONSÁVEL PELO BOOTSTRAPPING DO FRAMEWORK...
+
+
+
+
+
+
+
+
+
+
+
+--> O DIRECTORY DE 'cache' 
+    CONTÉM SIMPLESMENTE OS 
+
+    'cached framework-generated files',
+
+
+    como packages, services, routes, etc,
+
+    para boostar performance...
+
+
+
+
+
+
+
+
+
+
+
+-> TBM TEMOS UM ARQUIVO DE 'providers.php',
+
+
+que ESSENCIALMENTE EXISTE PARA 
+
+
+REGISTRAR OS SERVICE PROVIDERS...
+
+
+
+
+tipo assim:
+
+
+
+
+
+<?php
+
+return [
+    App\Providers\AppServiceProvider::class,
+];
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+MAIS TARDE, PODEMOS ADICIONAR MAIS CUSTOM SERVICE PROVIDERS,
+
+E ELES DEVERÃO SER LISTADOS ALI...
+
+
+
+
+
+SE VC CRIAR 1 SERVICE PROVIDER COM php artisan make provider xxxx,
+
+
+
+ele também é adicionado nessa lista,
+
+
+automaticamente...
+
+
+
+
+
+
+
+
+
+
+
+----> AÍ TEMOS O FOLDER DE 'config',
+
+
+    QUE  CONTÉM TODOS 
+
+    OS ARQUIVOS DE CONFIG DE SEU APP...
+
+
+
+
+
+
+
+-> A MAIOR PARTE DAS CONFIG FILES 
+
+NÃO PRECISA SER MEXIDA...
+
+
+
+
+
+
+
+
+
+
+
+
+-> VEREMOS CONFIG FILES MAIS TARDE NO CURSO...
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+DEPOIS DISSO, TEMOS O FOLDER DE 'database',
+
+
+que contém 
+
+
+
+FACTORIES, MIGRATIONS E SEEDERS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+SEEDERS --> SÃO USADOS PARA TESTING,
+   UNIT E FEATURE TESTS...
+
+
+
+
+
+
+MIGRATIONS --> SÃO SEU DATABASE SCHEMA-RELATED FILES...
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+php artisan make migration 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> AÍ TEMOS O FOLDER DE 'public',
+
+
+que é basicamente SEU 'DOCUMENT ROOT'...
+
+
+
+
+
+
+
+
+
+
+
+--> ELE CONTÉM O INDEX.PHP,
+
+QUE É POR ONDE TODOS SEUS REQUESTS SERÃO FUNILADOS...
+
+
+
+
+
+
+
+
+-> ELE TAMBÉM VAI CONTER 
+    ASSETS COMO IMAGES,
+
+    COMPILED CSS E JAVASCRIPT FILES,
+
+    E ASSIM POR DIANTE...
+
+
+
+
+
+
+
+--> APEASR DE 'public'
+
+CONTER SEUS COMPILED CSS E JAVASCRIPT CODE,
+
+
+
+
+O SEU DIRECTORY 
+
+DE 
+
+'resources'
+
+
+É QUE 
+
+VAI CONTER SEUS UNCOMPILED ASSETS,
+
+
+COMO _ CSS E JAVASCRIPT...
+
+
+
+
+
+
+
+
+
+
+-> ESSE FOLDER TAMBÉM VAI CONTER 
+    SEU FRONTEND E SEUS VIEWS,
+
+    COMO BLADE TEMPLATES E ASSIM POR DIANTE...
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR TAMBÉM VAI COBRIR ASSET BUNDLING E FRONTEND TOOLING 
+    NESSE CURSO... MTOS TÓPICOS A SEREM EXPLORADOS..
+
+
+
+
+
+
+
+--> TEMOS O FOLDER DE 'routes',
+
+que contém TODAS AS SUAS ROUTES,
+
+
+DENTRO DE 'web.php',
+
+
+
+E TAMBÉM 
+
+
+
+
+OS SEUS CONSOLE CLOSURE-BASED COMMANDS (em console.php)..
+
+
+
+
+
+
+
+
+
+
+--> CERTO...  É CLARO QUE ESSES SÃO APENAS DEFAULTS,
+
+E QUE VC PODE TER DIFERENTES ROUTE-FILES... SE SEU APP 
+PROVIDENCIA UMA REST API,
+
+VC PODE PROVIDENCIAR SEUS ENDPOINTS/ROUTES 
+
+DENTRO DO 'api.php',
+
+
+QUE ENTÃO PODERIA TER DIFERENTES MIDDLEWARES APLICADOS A SI,
+
+EM VEZ DOS MIDDLEWARES USADOS NO web.php...
+
+
+
+
+
+
+
+
+
+
+
+
+--> O WEB.PHP VAI BASICAMENTE   
+    MOSTRAR/TER TODAS AS SUAS 'STATEFUL ROUTES'...
+
+
+
+
+
+
+
+
+--> 'storage' --> CONTÉM 
+                    OS LOGS DE SEU APP,
+
+                    FILES GERADAS POR SEU APP,
+
+
+                    E FILES GERADAS POR SEU FRAMEWORK...
+
+
+
+
+--> SE VC N USA UMA STORAGE SOLUTION COMO AWS S3,
+    VC TALVEZ QUEIRA ARMAZENAR SUAS FILES EM 
+    ALGUM LUGAR, DENTRO DESSE FOLDER....
+
+
+
+
+
+
+-> 'framework' --> guarda as files produzidas pelo framework,
+
+                    coisas como FILE-BASED SESSIONS,
+
+                    CACHING,
+                    COMPILED BLADE TEMPLATES, ETC....
+
+
+
+
+
+
+-> 'tests' -> terá nossos unit e feature tests...
+
+
+
+
+
+
+
+
+
+
+--> BASICAMENTE, SERÃO SEUS TESTS DO PHPUNIT E PEST...
+
+
+
+
+
+--> O LARAVEL PROVIDENCIA 1 MONTE DE HELPER METHODS QUE 
+FACILITAM O WRITE DE AUTOMATED TESTS...
+
+
+
+
+
+
+
+
+-> PEST É UM TESTING FRAMEWORK,
+    QUE TE DÁ AINDA MAIS FEATURES,
+
+    E QUE FACILITA O WRITE DE TESTS...
+
+
+
+
+
+
+ELE É BUILT EM CIMA DO PHPUNIT...
+
+
+
+
+
+
+
+
+
+--> FINALMENTE,
+
+TEMOS O FOLDER DE 'vendor',
+
+com todas as coisas 
+do artisan..
+
+
+
+
+
+
+
+-> são bastantes folders...
