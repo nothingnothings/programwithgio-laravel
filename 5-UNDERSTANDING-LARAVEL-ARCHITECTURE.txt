@@ -1,0 +1,230 @@
+
+
+
+
+
+
+
+ANTES DE ESCREVER QUALQUER CÓDIGO LARAVEL,
+
+É IMPORTANTE ENTENDER A BASIC ARCHITECTURE
+
+DO FRAMEWORK,
+
+E COMO ELE FUNCIONA UNDER THE HOOD...
+
+
+
+
+
+
+
+
+
+PASTAS:
+
+
+
+
+
+
+
+
+app 
+
+bootstrap  
+
+config 
+
+database 
+
+public 
+
+resources 
+
+routes 
+
+storage 
+
+tests 
+
+vendor 
+
+
+
+
+
+
+
+
+
+
+--> O OBJETIVO, AQUI, É TER 1 HIGH LEVEL OVERVIEW DO LIFECYCLE 
+DO LARAVEL,
+
+E A BASIC ARCHITECTURE...
+
+
+
+
+
+
+
+COISAS COMO:
+
+
+
+''HOW LARAVEL HANDLES REQUESTS'',
+
+
+
+'WHAT HAPPENS FROM THE MOMENT A REQUEST ENTERS AN APP,
+TO THE MOMENT A RESPONSE IS SENT BACK''...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> COMEÇAMOS COM WEB REQUESTS, PQ 
+
+A MAIOR PARTE DOS USERS VAI INTERAGIR COM SEU APP DESSA FORMA...
+
+
+
+
+
+
+
+
+
+--> O ENTRYPOINT PARA TODOS OS WEB REQUESTS É 
+
+'index.php',
+
+
+DENTRO DO DIRECTORY DE 'public'...
+
+
+
+
+
+
+
+
+-> 'index.php' 
+
+    É TIPICAMENTE O ARQUIVO CONFIGURADO NO SEU NGINX 
+    ou apache, ou seja, em seu WEB SERVER...
+
+
+
+
+
+
+
+
+-> VAMOS DISSECAR ESSE SCRIPT:
+
+
+
+
+
+
+
+
+<?php
+
+use Illuminate\Http\Request;
+
+define('LARAVEL_START', microtime(true));
+
+// Determine if the application is in maintenance mode...
+if (file_exists($maintenance = __DIR__.'/../storage/framework/maintenance.php')) {
+    require $maintenance;
+}
+
+// Register the Composer autoloader...
+require __DIR__.'/../vendor/autoload.php';
+
+// Bootstrap Laravel and handle the request...
+(require_once __DIR__.'/../bootstrap/app.php')
+    ->handleRequest(Request::capture());
+
+
+
+
+
+
+
+
+-> PRIMEIRAMENTE,
+
+
+
+
+
+O SCRIPT CHECA SE O APP ESTÁ EM maintenance
+MODE,
+
+
+E, SE ESTIVER,
+
+ELE HANDLA ACCORDINGLY...
+
+
+
+
+
+
+
+DEPOIS DISSO, ELE HANDLA O COMOPSER AUTOLOADER...
+
+
+// Register the Composer autoloader...
+require __DIR__.'/../vendor/autoload.php';
+
+
+
+
+
+
+
+
+
+
+
+-> ISSO DEIXA O LARAVEL CARREGAR TODAS AS CLASSES, AUTOMATICAMENTE...
+
+
+
+
+
+
+
+
+
+
+
+-> FINALMENTE, O SCRIPT 
+
+__ CARREGA O APP, LÁ DO ARQUIVO DE 'app.php',
+
+
+que setta e configura tudo 
+
+
+
+QUE O APP PRECISA PARA RODAR...
+
+
+
+--> 

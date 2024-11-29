@@ -1,0 +1,4 @@
+mysql-docker/mysql/auto.cnf
+mysql-docker/mysql/ib_buffer_pool
+mysql-docker/mysql/db.opt
+mysql-docker/mysql/mysql.sock
