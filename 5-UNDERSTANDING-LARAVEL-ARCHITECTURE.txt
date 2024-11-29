@@ -227,4 +227,2077 @@ QUE O APP PRECISA PARA RODAR...
 
 
 
---> 
+--> TEMOS O METHOD CALL ESTÁTICO 
+    de 
+
+
+
+
+
+''
+
+return Application::configure(basePath: dirname(__DIR__))
+
+
+
+''
+
+
+
+
+,
+
+
+QUE BASICAMENTE INICIALIZA O OBJETO APPLICATION,
+
+E PREPARA-O PARA O BOOT...
+
+
+
+--> DEPOIS QUE ESSE APP É CRIADO, PREPARADO E RETORNADO
+    
+    PELO ARQUIVO 'app.php',
+
+
+
+
+
+
+
+
+
+O METHOD DE 'handleRequest'
+    É CHAMADO,
+
+    DENTRO DO OBJECT DE 'App'..
+
+
+
+
+--> ESSE method É RESPONSÁVEL PELO 'TAKE' DO INCOMING HTTP REQUEST 
+    E PELO CONVERT DELE EM 1 RESPONSE, DEPOIS 
+
+    DE VIAJAR PELA LÓGICA DA APPLICATION...
+
+
+
+
+
+
+
+
+
+
+--> DEVEMOS INSPECIONAR 
+
+    O METHOD DE 'handleRequest',
+
+
+    dentro do objeto application:
+
+
+
+
+
+
+
+
+<?php
+
+use Illuminate\Http\Request;
+
+define('LARAVEL_START', microtime(true));
+
+// Determine if the application is in maintenance mode...
+if (file_exists($maintenance = __DIR__.'/../storage/framework/maintenance.php')) {
+    require $maintenance;
+}
+
+// Register the Composer autoloader...
+require __DIR__.'/../vendor/autoload.php';
+
+// Bootstrap Laravel and handle the request...
+(require_once __DIR__.'/../bootstrap/app.php')
+    ->handleRequest(Request::capture());
+
+
+
+
+
+
+
+
+
+
+ESTA PARTE AQUi:
+
+
+
+
+
+
+
+
+
+
+// Bootstrap Laravel and handle the request...
+(require_once __DIR__.'/../bootstrap/app.php')
+    ->handleRequest(Request::capture());
+
+
+
+
+
+
+-> abrimos a instance de 'Application',
+
+onde temos 'handleRequest':
+
+
+
+
+
+
+    /**
+     * Handle the incoming HTTP request and send the response to the browser.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return void
+     */
+    public function handleRequest(Request $request)
+    {
+        $kernel = $this->make(HttpKernelContract::class);
+
+        $response = $kernel->handle($request)->send();
+
+        $kernel->terminate($request, $response);
+    }
+
+
+
+
+
+
+
+
+
+
+-> DENTRO DELE, PERCEBEMOS QUE 
+
+
+
+ESSE METHOD HANDLA O REQUEST USANDO O 'HttpKernelContract'...
+
+
+
+
+
+é uma class...
+
+
+
+
+
+
+
+--> MAS O QUE É ESSA CLASS, DE 'KERNEL'?
+
+
+
+
+
+--> ESSE KERNEL É UM CONTRACT... QUER DIZER QUE ELE É UMA INTERFACE...
+
+
+
+
+    --> MAS A IMPLEMENTATION DO KERNEL É OUTRA COISA,
+
+    A ACTUAL IMPLEMENTATION É _ O KERNEL LÁ DO DIRECTORY DE 'Http',
+
+    que tem este código:
+
+
+
+
+
+
+
+
+
+
+<?php
+
+namespace Illuminate\Contracts\Http;
+
+interface Kernel
+{
+    /**
+     * Bootstrap the application for HTTP requests.
+     *
+     * @return void
+     */
+    public function bootstrap();
+
+    /**
+     * Handle an incoming HTTP request.
+     *
+     * @param  \Symfony\Component\HttpFoundation\Request  $request
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
+    public function handle($request);
+
+    /**
+     * Perform any final actions for the request lifecycle.
+     *
+     * @param  \Symfony\Component\HttpFoundation\Request  $request
+     * @param  \Symfony\Component\HttpFoundation\Response  $response
+     * @return void
+     */
+    public function terminate($request, $response);
+
+    /**
+     * Get the Laravel application instance.
+     *
+     * @return \Illuminate\Contracts\Foundation\Application
+     */
+    public function getApplication();
+}
+
+
+
+
+
+
+
+
+
+
+--> COMO VC PODE VER,
+
+
+    ELE TEM O METHOD DE 'handle':
+
+
+        /**
+     * Handle an incoming HTTP request.
+     *
+     * @param  \Symfony\Component\HttpFoundation\Request  $request
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
+    public function handle($request);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+A IMPLEMENTATION, ACTUAL IMPLEMENTATION, É ESTA:
+
+
+
+
+
+
+
+
+    /**
+     * Handle an incoming HTTP request.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function handle($request)
+    {
+        $this->requestStartedAt = Carbon::now();
+
+        try {
+            $request->enableHttpMethodParameterOverride();
+
+            $response = $this->sendRequestThroughRouter($request);
+        } catch (Throwable $e) {
+            $this->reportException($e);
+
+            $response = $this->renderException($request, $e);
+        }
+
+        $this->app['events']->dispatch(
+            new RequestHandled($request, $response)
+        );
+
+        return $response;
+    }
+
+
+
+
+
+
+
+
+
+
+--> O QUE ACONTECE, QUANDO O REQUEST É PROCESSADO?
+
+
+
+
+
+
+
+
+
+
+
+-> ELE ACABA ENTRANDO NO METHOD DE '$this->sendRequestThroughRouter()"...
+
+
+
+
+
+
+
+
+
+-> ESSE METHOD, sendRequestThroughRouter,
+
+
+
+
+TEM ISTO:
+
+
+
+
+
+
+    /**
+     * Send the given request through the middleware / router.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    protected function sendRequestThroughRouter($request)
+    {
+        $this->app->instance('request', $request);
+
+        Facade::clearResolvedInstance('request');
+
+        $this->bootstrap();
+
+        return (new Pipeline($this->app))
+                    ->send($request)
+                    ->through($this->app->shouldSkipMiddleware() ? [] : $this->middleware)
+                    ->then($this->dispatchToRouter());
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+COMO VC PODE VER,
+
+
+
+O LARAVEL ENVIA O REQUEST PARA DENTRO DO MIDDLEWARE STACK DO LARAVEL...
+
+
+
+
+
+DEPOIS DISSO,
+
+
+ELE ENVIA O REQUEST AO ROUTER,
+
+
+
+POR MEIO DE 
+
+
+''                     ->then($this->dispatchToRouter()); '',
+
+
+
+
+
+ISSO VAI RESULTAR EM 1 ROUTER ACTION/CONTROLLER..
+
+
+
+
+
+
+
+
+
+
+
+
+MIDDLEWARES, EM LARAVEL,
+
+ATUAM COMO 'GATEKEEPERS',
+
+QUE DECIDEM 
+
+
+
+SE 1 REQUEST DEVE PROSSEGUIR PARA DENTRO DO APP OU NÃO...
+
+
+
+
+
+MIDDLEWARES PODEM POTENCIALMENTE REDIRECIONAR 
+
+OS REQUESTS,
+
+COM BASE EM CONDIÇÕES COMO 'USER AUTHENTICATION', AUTHORIZATION E ETC...
+
+
+
+
+
+
+
+MIDDLEWARES PODEM SER APLICADOS:
+
+
+1) GLOBALMENTE 
+
+
+2) A ROUTES ESPECÍFICAS...
+
+
+
+
+
+
+
+
+
+
+
+SE 1 REQUEST PASSA POR TODOS OS MIDDLEWARES 
+DE 1 ROUTE COM SUCESSO, O CONTROLLER APROPRIADO É EXECUTADO,
+
+E AÍ A RESPONSE É ENVIADA ATRAVÉS DA MIDDLEWARE CHAIN...
+
+
+
+
+
+
+
+
+
+
+
+MAS ANTES MESMO DO REQUEST SER ENVIADO AO ROUTER,
+
+
+AQUELE METHOD DE 'bootstrap' é chamado...
+
+
+este method aqui:
+
+
+
+
+        $this->bootstrap();
+
+
+
+
+
+
+
+
+
+
+
+
+ESSE METHOD É RESPONSÁVEL PELO CONFIGURING E BOOTSTRAPPING 
+DE PARTES IMPORTANTES DO FRAMEWORK (como error handling, logging, etc)...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+UMA DAS ETAPAS-CHAVE DURANTE O PROCESSO DE START-UP (bootstrapping)
+
+ENVOLVE 
+
+O SETUP DE SERVICE PROVIDERS...
+
+
+
+
+ESSES SERVICE PROVIDERS SÃO DEFINIDOS AQUI:
+
+
+
+
+
+
+    /**
+     * The bootstrap classes for the application.
+     *
+     * @var string[]
+     */
+    protected $bootstrappers = [
+        \Illuminate\Foundation\Bootstrap\LoadEnvironmentVariables::class,
+        \Illuminate\Foundation\Bootstrap\LoadConfiguration::class,
+        \Illuminate\Foundation\Bootstrap\HandleExceptions::class,
+        \Illuminate\Foundation\Bootstrap\RegisterFacades::class,
+        \Illuminate\Foundation\Bootstrap\RegisterProviders::class,
+        \Illuminate\Foundation\Bootstrap\BootProviders::class,
+    ];
+
+
+
+
+
+
+
+
+
+PENSE EM SERVICE PROVIDERS COMO 
+
+'HELPERS',
+
+QUE 'TAKE CARE' 
+
+DE TUDO NECESSÁRIO PARA FAZER SEU APP RODAR...
+
+
+
+
+
+
+
+--> SÃO ELES QUE LIDAM COM TODAS AS PARTES PRINCIPAIS DO SEU APP,
+
+COMO:
+
+
+1) DATABASE 
+
+2) QUEUES 
+
+3) VALIDATION 
+
+4) ATÉ MESMO O ROUTING...
+
+
+
+
+
+
+
+
+
+
+
+
+--> OK... TEMOS ESSES BOOTSTRAPPERS, 
+    VÁRIOS, 
+    QUE CONFIGURAM E STARTAM SEU APP...
+
+
+
+
+
+
+
+
+TEMOS COISAS COMO:
+
+
+
+
+
+
+
+
+LoadEnvironmentVariables...
+
+
+HandleExceptions --> handla exceptions..
+
+
+
+
+
+
+
+
+
+facades --> SÃO ABSTRAÇÕES..
+
+
+
+RegisterProviders --> providers, outros providers..
+
+
+
+
+
+
+
+
+BootProviders --> boota os providers...
+
+
+
+
+
+
+
+
+
+
+
+-> 'RegisterProviderS' --> É UMA CLASS...
+
+
+
+
+
+
+
+
+
+
+-_> temos o method de 'registerConfiguredProviders'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> ESSE METHOD EXISTE NA CLASS DE 'Application':
+
+
+
+
+
+
+    /**
+     * Register all of the configured providers.
+     *
+     * @return void
+     */
+    public function registerConfiguredProviders()
+    {
+        $providers = Collection::make($this->make('config')->get('app.providers'))
+                        ->partition(fn ($provider) => str_starts_with($provider, 'Illuminate\\'));
+
+        $providers->splice(1, 0, [$this->make(PackageManifest::class)->providers()]);
+
+        (new ProviderRepository($this, new Filesystem, $this->getCachedServicesPath()))
+                    ->load($providers->collapse()->toArray());
+
+        $this->fireAppCallbacks($this->registeredCallbacks);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+-> ESSE METHOD USA 
+
+
+
+O 'ProviderRepository',
+
+
+
+E AÍ 
+
+
+
+USA O METHOD DE 'load()',
+
+
+que basicamente carrega os providers...
+
+
+
+
+
+
+
+
+
+--> esse method de load,
+
+por sua vez,
+
+
+
+VAI REGISTRAR OS PROVIDERS,
+
+
+Com 
+
+'$this->app->register()'...
+
+
+
+
+
+
+        foreach ($manifest['eager'] as $provider) {
+            $this->app->register($provider);
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ESSE METHOD, POR SUA VEZ,
+
+
+EXISTE DENTRO DA CLASS DE 'App' em si,
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+    /**
+     * Register a service provider with the application.
+     *
+     * @param  \Illuminate\Support\ServiceProvider|string  $provider
+     * @param  bool  $force
+     * @return \Illuminate\Support\ServiceProvider
+     */
+    public function register($provider, $force = false)
+    {
+        if (($registered = $this->getProvider($provider)) && ! $force) {
+            return $registered;
+        }
+
+        // If the given "provider" is a string, we will resolve it, passing in the
+        // application instance automatically for the developer. This is simply
+        // a more convenient way of specifying your service provider classes.
+        if (is_string($provider)) {
+            $provider = $this->resolveProvider($provider);
+        }
+
+        $provider->register();
+
+        // If there are bindings / singletons set as properties on the provider we
+        // will spin through them and register them with the application, which
+        // serves as a convenience layer while registering a lot of bindings.
+        if (property_exists($provider, 'bindings')) {
+            foreach ($provider->bindings as $key => $value) {
+                $this->bind($key, $value);
+            }
+        }
+
+        if (property_exists($provider, 'singletons')) {
+            foreach ($provider->singletons as $key => $value) {
+                $key = is_int($key) ? $value : $key;
+
+                $this->singleton($key, $value);
+            }
+        }
+
+        $this->markAsRegistered($provider);
+
+        // If the application has already booted, we will call this boot method on
+        // the provider class so it has an opportunity to do its boot logic and
+        // will be ready for any usage by this developer's application logic.
+        if ($this->isBooted()) {
+            $this->bootProvider($provider);
+        }
+
+        return $provider;
+    }
+ 
+
+
+
+
+
+
+
+
+
+
+ BASICAMENTE,
+ ESSE METHOD RODA ALGUNS CHECKS,
+
+ PARA CHECAR SE O PROVIDER JÁ ESTÁ REGISTRADO OU NÃO,
+
+
+ 
+ E, ENTÃO,
+
+ FINALMENTE,
+
+
+
+ ELE EXECUTA O METHOD DE '->register()',
+
+
+
+ DENTRO  DE CADA PROVIDER...
+
+
+
+
+
+
+ EX:
+
+
+
+
+
+
+
+         $provider->register();
+
+
+
+
+
+
+
+
+
+
+
+-> É POR ISSO QUE, MAIS TARDE, QUANDO ESTUDARMOS PROVIDERS,
+
+
+VEREMOS QUE 
+
+
+TODOS OS PROVIDERS TERÃO SEMPRE 2 METHODS:
+
+
+1) 'bootstrap' (para INICIALIZAR A SI MESMO)
+
+
+
+2) 'register()' --> PARA ADICIONAR O PROVIDER AO APP, À APPLICATION...
+
+
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+<?php
+
+namespace App\Providers;
+
+use Illuminate\Support\ServiceProvider;
+
+class AppServiceProvider extends ServiceProvider
+{
+    /**
+     * Register any application services.
+     */
+    public function register(): void
+    {
+        //
+    }
+
+    /**
+     * Bootstrap any application services.
+     */
+    public function boot(): void
+    {
+        //
+    }
+}
+
+
+
+
+
+
+
+
+--> E É AÍ QUE O METHOD DE 'register()'
+
+é chamado, basicamente...
+
+
+
+
+
+
+
+
+
+
+
+-> QUER DIZER QUE O METHOD DE 'register' é chamado ANTES,
+
+E DEPOIS É CHAMADO O METHOD DE 'boot()'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+DEPOIS DE TODOS OS SERVICE PROVIDERS SEREM REGISTRADOS,
+
+ELES SÃO 'BOOTED'...
+
+
+
+
+
+
+
+
+
+
+
+
+--> E O METHOD DE 'boot()',
+
+em cada PROVIDER,
+
+
+
+É BASICAMENTE SEU 'ACTION METHOD'...
+
+
+
+
+
+
+
+
+
+
+--> PODEMOS VER ISSO, NO CASO,
+    SE VOLTARMOS À CLASS DE 'kernel':
+
+
+
+
+
+
+    /**
+     * The bootstrap classes for the application.
+     *
+     * @var string[]
+     */
+    protected $bootstrappers = [
+        \Illuminate\Foundation\Bootstrap\LoadEnvironmentVariables::class,
+        \Illuminate\Foundation\Bootstrap\LoadConfiguration::class,
+        \Illuminate\Foundation\Bootstrap\HandleExceptions::class,
+        \Illuminate\Foundation\Bootstrap\RegisterFacades::class,
+        \Illuminate\Foundation\Bootstrap\RegisterProviders::class,
+        \Illuminate\Foundation\Bootstrap\BootProviders::class,
+    ];
+
+
+
+
+
+
+
+
+
+
+
+
+-> COMO VC PODE VER,
+
+NESSA LISTA DE BOOTSTRAPPERS,
+
+
+TEMOS ESTA ORDEM:
+
+
+        \Illuminate\Foundation\Bootstrap\RegisterProviders::class,
+        \Illuminate\Foundation\Bootstrap\BootProviders::class,
+
+
+
+
+
+
+
+-> OU SEJA,
+
+
+OS PROVIDERS SÃO _ REGISTRADOS__ ANTES__ DE SEREM BOOTADOS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> ISSO FARÁ MAIS SENTIDO QUANDO EXAMINARMOS 1 PROVIDER DE PERTO... E 
+
+QUANDO ESTUDARMOS __ A DIFERENÇA 
+
+
+ENTRE 
+
+
+OS METHODS DE 'Register' e 'boot'...
+
+
+
+
+
+
+
+
+
+
+
+
+--> EM BootProviders,
+
+TEMOS ISTO:
+
+
+
+
+
+<?php
+
+namespace Illuminate\Foundation\Bootstrap;
+
+use Illuminate\Contracts\Foundation\Application;
+
+class BootProviders
+{
+    /**
+     * Bootstrap the given application.
+     *
+     * @param  \Illuminate\Contracts\Foundation\Application  $app
+     * @return void
+     */
+    public function bootstrap(Application $app)
+    {
+        $app->boot();
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> COMO VC PODE VER, ELE FAZ RODAR O METHOD DE 'boot()',
+
+dentro do ''App''...
+
+
+
+
+
+
+
+
+--> O METHOD DE 'boot()',
+
+
+dentro do object app,
+
+
+É TIPO ASSIM:
+
+
+
+
+
+
+
+    /**
+     * Boot the application's service providers.
+     *
+     * @return void
+     */
+    public function boot()
+    {
+        if ($this->isBooted()) {
+            return;
+        }
+
+        // Once the application has booted we will also fire some "booted" callbacks
+        // for any listeners that need to do work after this initial booting gets
+        // finished. This is useful when ordering the boot-up processes we run.
+        $this->fireAppCallbacks($this->bootingCallbacks);
+
+        array_walk($this->serviceProviders, function ($p) {
+            $this->bootProvider($p);
+        });
+
+        $this->booted = true;
+
+        $this->fireAppCallbacks($this->bootedCallbacks);
+    }
+
+
+
+
+
+
+
+
+
+--> COMO VC PODE VER,
+
+
+ELE BASICAMENTE 
+
+CHECA
+
+
+
+SE O APP JÁ FOI BOOTADO OU NÃO... SE ELE NÃO FOI BOOTADO 
+
+AINDA,
+
+ELE 
+
+
+RODA 
+
+
+fireAppCallbacks
+ 
+
+
+ e 
+
+
+
+ bootProvider,
+
+
+
+
+ QUE FAZ COM QUE  __ TODOS __ OS PROVIDERS 
+
+
+SEJAM BOOTADOS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+REGISTER METHOD --> É USADO BASICAMENTE 
+
+                        PARA REGISTRAR OU BINDAR 
+                        SERVICES/CLASSES NO SERVICE CONTAINER 
+
+                        DO LARAVEL...
+
+
+BOOT METHOD --> É BASICAMENTE O 'ACTION METHOD'... ELE REALMENTE 
+                realiza uma ação, ao contrário do 'register()'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+UM ERRO COMUM DE SE FAZER, COM O LARAVEL,
+
+
+É CONFUNDIR/MISTURAR 
+
+
+
+'''Service Containers'''
+
+
+
+com 
+
+
+
+'''Service Providers'''...
+
+
+
+
+
+
+
+
+
+ELES SÃO 2 COISAS COMPLETAMENTE DIFERENTES...
+
+
+
+
+
+
+
+
+
+
+
+''SERVICE CONTAINER'' -> É BASICAMENTE 
+
+
+                        O 'DEPENDENCY INJECTION CONTAINER'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ISSO PQ, SE EXAMINARMOS A CLASS DE 'Application',
+
+VEREMOS QUE ELA FAZ __ EXTEND ___ DA CLASS DE 'Container':
+
+
+
+
+
+
+
+class Application extends Container implements ApplicationContract, CachesConfiguration, CachesRoutes, HttpKernelInterface
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> BASICAMENTE, ISSO QUER DIZER QUE 
+
+    
+
+
+    '''YOUR APPLICATION CLASS IS __ ALSO __ YOUR SERVICE __ CONTAINER''...
+
+
+
+
+
+
+
+
+-> seu service container está CONTIDO/É A SUA APPLICATION  CLASS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> OUTRO ERRO COMUM, COM SERVICE PROVIDERS,
+
+
+É 
+
+
+
+
+
+'''TRY TO USE SERVICES FROM _ __ OTHER SERVICE 
+PROVIDERS __ INSIDE OF THE __ REGISTER METHOD''...
+
+
+
+
+
+EXPLICAÇÃO:
+
+
+''SINCE THE __REGISTER__ METHOD __ DOES NOT 
+GUARANTEE THAT ALL THE OTHER PROVIDERS HAVE BEEN LOADED YET,
+THE SERVICES YOU __ ATTEMPT__ TO USE __ MIGHT _ NOT BE AVAILABLE YET''...
+
+
+
+''THEREFORE, ALL CODE/ACTIONS/LOGIC THAT DEPENDS ON SERVICES FROM __ OTHER PROVIDERS 
+    SHOULD __ BE PLACED__ ON THE __'boot()' METHOD, AND NOT THE 'register()" METHOD''...
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+<?php
+
+namespace App\Providers;
+
+use Illuminate\Support\ServiceProvider;
+
+class AppServiceProvider extends ServiceProvider
+{
+    /**
+     * Register any application services.
+     */
+    public function register(): void
+    {
+        //// PREVIOUS SET-UP GOES HERE, REGISTERING OF SERVICES...
+    }
+
+    /**
+     * Bootstrap any application services.
+     */
+    public function boot(): void
+    {
+        // ACTIONS/LOGIC THAT DEPEND ON OTHER SERVICES GOES HERE...
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... DE VOLTA AO FLOW DO REQUEST...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> DEPOIS DO ROUTE/CONTROLLER METHOD __ GERAR 1 RESPONSE,
+
+ELE 'MOVES OUTWARD', EM RELAÇÃO AO MIDDLEWARE DO APP... OU SEJA,
+
+ELE 
+
+RODA ESTA LINHA:
+
+
+
+
+
+    /**
+     * Handle the incoming HTTP request and send the response to the browser.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return void
+     */
+    public function handleRequest(Request $request)
+    {
+        $kernel = $this->make(HttpKernelContract::class);
+
+        $response = $kernel->handle($request)->send();
+
+        $kernel->terminate($request, $response);
+    }
+
+
+
+
+
+
+
+
+
+
+
+ESTA LINHA:
+
+
+
+
+        $response = $kernel->handle($request)->send();
+
+
+
+
+
+
+
+
+
+
+
+
+ISSO BASICAMENTE PERMITE A MODIFICAÇÃO/INSPECTIONS 
+
+DA __ OUTGOING RESPONSE...
+
+
+
+
+
+
+
+
+
+--> DEPOIS,
+
+    O METHOD DE 'send()'
+
+    É INVOCADO no object de 'RESPONSE',
+
+    que é retornado por '$kernel->handle($request)'..
+
+
+
+
+EX:
+
+
+        $response = $kernel->handle($request)->send();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> POR FIM, A RESPONSE FINAL É ENVIADA AO WEB BROWSER 
+
+DO USER,
+
+
+COMPLETADO O LIFECYCLE 
+
+DE REQUEST-RESPONSE DO LARAVEL...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... ISSO COBRE A PARTE DOS 'WEB REQUESTS'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> MAS OS 'CONSOLE REQUESTS'
+
+SÃO HANDLADOS DE FORMA 1 POUCO DIFERENTE... NÃO SÃO HANDLADOS
+
+POR MEIO DO ARQUIVO DE 'public/index.php',
+
+
+
+E SIM 
+
+
+
+ENTRAM NO APP _ POR MEIO __ 
+
+
+DA COMMAND-LINE INTERFACE DO 'artisan',
+
+QUE FAZ 
+
+O BOOTSTRAP DO 
+
+
+APP USANDO 
+
+O 
+
+
+
+
+'CONSOLE KERNEL'...
+
+
+
+
+
+
+
+
+
+--> NÓS CHAMAMOS ESSES COMMANDS, DA COMMAND LINE INTERFACE,
+
+
+DE 'ARTISAN COMMANDS',
+
+
+E ELES SÃO HANDLADOS PELO ARQUIVO 'artisan',
+
+que fica
+no root 
+dos projetos laravel...
+
+
+
+
+
+
+
+
+
+
+
+
+-> SE ABRIMOS ESSE FILE, ENCONTRAMOS ISTO:
+
+
+
+
+
+
+#!/usr/bin/env php
+<?php
+
+use Symfony\Component\Console\Input\ArgvInput;
+
+define('LARAVEL_START', microtime(true));
+
+// Register the Composer autoloader...
+require __DIR__.'/vendor/autoload.php';
+
+// Bootstrap Laravel and handle the command...
+$status = (require_once __DIR__.'/bootstrap/app.php')
+    ->handleCommand(new ArgvInput);
+
+exit($status);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> É UM ARQUIVO PHP NORMAL...
+
+
+
+
+
+
+
+
+
+--> ESSE ARQUIVO TAMBÉM:
+
+
+1) CREATES THE APP 
+
+2) CONFIGURES THE APP 
+
+3) GETS THE APP  instance...
+
+
+
+
+
+
+
+
+OU SEJA,
+
+EXATAMENTE COMO NO arquivo 'public/index.php'...
+
+
+
+
+
+
+
+
+certo... mas em vez de chamar '->handleRequest()',
+
+
+ESSE ARQUIVO CHAMA O METHOD DE 'handleCommand()',
+
+
+COMO VISTO AQUI:
+
+
+
+
+
+// Bootstrap Laravel and handle the command...
+$status = (require_once __DIR__.'/bootstrap/app.php')
+    ->handleCommand(new ArgvInput);
+
+
+
+
+
+
+
+e, depois disso, esse arquivo QUITA A EXECUÇÃO,
+
+com 'exit($status)'...
+
+
+
+
+
+
+
+
+
+
+
+
+PODEMOS COMPARAR OS 2:
+
+
+
+
+
+
+
+
+
+// Bootstrap Laravel and handle the request...
+(require_once __DIR__.'/../bootstrap/app.php')
+    ->handleRequest(Request::capture());
+
+
+
+
+
+VS 
+
+
+
+
+// Bootstrap Laravel and handle the command...
+$status = (require_once __DIR__.'/bootstrap/app.php')
+    ->handleCommand(new ArgvInput);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+E COMO É ESSE METHOD, de handleCommand?
+
+
+
+
+
+
+
+    /**
+     * Handle the incoming Artisan command.
+     *
+     * @param  \Symfony\Component\Console\Input\InputInterface  $input
+     * @return int
+     */
+    public function handleCommand(InputInterface $input)
+    {
+        $kernel = $this->make(ConsoleKernelContract::class);
+
+        $status = $kernel->handle(
+            $input,
+            new ConsoleOutput
+        );
+
+        $kernel->terminate($input, $status);
+
+        return $status;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... COMO OBSERVAMOS,
+
+
+ELE _ CRIA O 'console kernel',
+
+
+
+
+com 
+
+
+
+isto:
+
+
+        $kernel = $this->make(ConsoleKernelContract::class);
+
+
+
+
+
+
+
+
+
+DEPOIS DISSO,
+
+
+ELE CHAMA O METHOD DE 'handle()',
+
+
+
+DENTRO DESSE OBJECT DE 'Kernel'...
+
+
+
+
+
+
+
+
+
+FICA TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+    /**
+     * Run the console application.
+     *
+     * @param  \Symfony\Component\Console\Input\InputInterface  $input
+     * @param  \Symfony\Component\Console\Output\OutputInterface|null  $output
+     * @return int
+     */
+    public function handle($input, $output = null)
+    {
+        $this->commandStartedAt = Carbon::now();
+
+        try {
+            if (in_array($input->getFirstArgument(), ['env:encrypt', 'env:decrypt'], true)) {
+                $this->bootstrapWithoutBootingProviders();
+            }
+
+            $this->bootstrap();
+
+            return $this->getArtisan()->run($input, $output);
+        } catch (Throwable $e) {
+            $this->reportException($e);
+
+            $this->renderException($output, $e);
+
+            return 1;
+        }
+    }
+
+
+
+
+
+ESSE METHOD É RESPONSÁVEL PELO HANDLE E EXECUTE DAQUELE COMANDO...
+
+
+
+
+
+
+
+
+COMO VC PODE VER,
+
+ESSE METHOD TAMBÉM 
+
+
+BOOTA O APP DE FORMA SIMILAR 
+
+
+À MANEIRA PELA QUAL ISSO ERA FEITO LÁ NA CLASS DE 'HttpKernel'...
+
+
+
+QUER DIZER QUE ELE:
+
+
+1) VAI POR DENTRO DE UNS BOOTSTRAPPERS 
+
+2) CARREGA SERVICE PROVIDERS...
+
+
+
+
+
+FAZ BASICAMENTE A MESMA COISA...
+
+
+
+
+
+
+
+
+
+
+--> DEPOIS DE ELE BOOTSTRAPPAR E CARREGAR TUDO CORRETAMENTE,
+
+    ele roda o comando de 'run()':
+
+
+
+
+
+            return $this->getArtisan()->run($input, $output);
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> SE VC PENSAVA, ANTERIORMENTE,
+    QUE 'KERNEL'
+
+    ERA ALGO SUPER COMPLEXO,
+
+
+    NA VERDADE É ALGO BEM SIMPLES... O KERNEL É QUASE 
+
+    COMO 1 'BRAIN' DA OPERATION, 
+
+    QUE DIRECIONA A MANEIRA PELA QUAL REQUESTS SÃO HANDLADOS 
+
+    (se são web ou console commands)...
+
+
+
+
+
+
+-> O PROFESSOR QUERIA MOSTRAR ESSES CONCEITOS AGORA PQ 
+ELES VÃO NOS AJUDAR 
+
+A ENTENDER A MANEIRA PELA QUAL O LARAVEL FUNCIONA...
