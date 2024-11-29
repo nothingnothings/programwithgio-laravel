@@ -1,0 +1,322 @@
+
+
+
+
+
+
+
+
+
+
+
+
+-> ESSE CURSO VAI NOS ENSINAR COMO O LARAVEL FAZ CERTAS COISAS,
+    E COMO FUNCIONA, POR TRÁS DAS CENAS...
+
+
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR QUER MOSTRAR COMO CERTAS COISAS FUNCIONAM, NO LARAVEL...
+
+
+
+
+
+
+
+
+
+
+--> REQUISITOS:
+
+
+
+    1) SABER PHP 
+
+
+    2) VC PODE APRENDER LARAVEL SEM SABER PHP... 
+        MAS É BOM SABER PHP ANTES...
+
+
+
+
+
+
+
+
+--> SERIA QUE NEM CRIAR 1 LIVRO SEM SABER GRAMÁTICA...
+
+
+
+
+
+
+
+--> RELIANCE ON FRAMEWORKS BECOMES A DOUBLE-EDGED SWORD WHEN YOU 
+BECOME TOO DEPENDENT... THIS MIGHT LIMIT YOUR ABILITY 
+TO CUSTOMIZE SOLUTIONS, TROUBLESHOOT AND FULLY LEVERAGE THE 
+FRAMEWORK'S POTENTIAL...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+PHP --> BASIC LEVEL --> ''COMPLETED SOME KIND OF PHP COURSE,
+
+                            BUILT A PROJECT OR 2...''
+                        
+
+
+
+
+
+
+
+
+OOP 
+
+
+
+NAMESPACES AND AUTOLOADING 
+
+
+COMPOSER 
+
+
+
+WORKING WITH ARRAYS 
+
+
+
+
+WORKING WITH FILES...
+
+
+
+
+
+
+$_GET, $_POST... -> SUPERGLOBALS...
+
+
+
+
+
+--> saber enviar 1 form,
+receber input value,
+ 
+
+ enviar values, etc..
+
+
+
+
+
+
+
+
+ PDO --> CONECTAR à DATABASE,   USANDO PDO, E SABER ESCREVER BASIC QUERIES...
+
+
+
+
+
+ MYSQL --> SABER MYSQL SERÁ 1 PLUS...
+
+
+
+
+
+
+
+
+
+
+
+ --> TAMBÉM É BOM SABER O BÁSICO SOBRE COOKIES E SESSIONS,
+    E SOBRE COMO FUNCIONAM...
+
+
+
+
+
+
+
+
+
+
+laracasts...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> SE SOUBERMOS 
+
+O BÁSICO DE GIT, APACHE/NGINX, HTML, CSS E JAVASCRIPT,
+
+
+É MELHOR...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+VEREMOS:
+
+
+
+
+
+
+
+1) LARAVEL SETUP 
+
+
+2) MVC 
+
+
+
+3) ARCHITECTURE 
+
+
+4) DIRECTORY STRUCTURE 
+
+
+
+5) ARTISAN 
+
+
+6) TINKER 
+
+
+
+7) ROUTING 
+
+
+
+8) CONTROLLERS 
+
+
+9) MIDDLEWARES 
+
+
+
+10) SERVICE CONTAINER 
+
+
+11) SERVICE PROVIDER 
+
+
+12) FACADES 
+
+
+13) VIEWS 
+
+
+14) BLADE 
+
+
+15) LAYOUTS 
+
+
+16) COMPONENTS 
+
+
+
+17) ASSET BUNDLING 
+
+
+18) MIGRATIONS 
+
+
+
+19) QUERY BUILDER 
+
+
+
+20) COLLECTIONS 
+
+
+21) MODELS 
+
+
+
+22) ELOQUENT ORM 
+
+
+
+23) RELATIONSHIPS 
+
+
+24) PAGINATION 
+
+
+25) JOBS 
+
+
+
+26) QUEUES 
+
+
+
+
+27) AUTHENTICATION 
+
+
+28) AUTHORIZATION 
+
+
+
+29)  SECURITY 
+
+
+30) FORM REQUESTS 
+
+
+
+31) COMMAND SCHEDULING 
+
+
+32) CACHING 
+
+
+
+33) FILE SYSTEM...

@@ -1,0 +1,349 @@
+
+
+
+
+
+
+
+
+
+
+
+PODEMOS CONFIGURAR O LARAVEL DE MÚLTIPLAS FORMAS,
+
+
+EM DEVELOPMENT...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+EASY 
+
+
+
+
+HARD 
+
+
+
+
+HERD...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> O HERD TE AJUDA A TRABALHAR COM O LARAVEL...
+
+
+
+
+
+
+
+
+
+
+
+
+-> ALTERNATIVAMENTE, PODEMOS USAR O 'LARAVEL SAIL',
+
+
+QUE UTILIZA O DOCKER PARA SETTAR O LARAVEL LOCAL ENVIRONMENT... EASY STARTING POINT 
+
+PARA CONSTRUIR 
+
+APPS, USANDO O DOCKER...
+
+
+
+
+
+
+
+
+
+
+--> OK... COMO PODEMOS USAR O LARAVEL SAIL, COM O DOCKER?
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> 'CREATING A LARAVEL PROJECT:
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+ podemos escrever tipo assim:
+
+
+
+
+
+
+
+ curl -s https://laravel.build/relearning-laravel | bash
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> ABRIMOS O PROJETO EM 
+
+
+wsl.localhost/Ubuntu 
+
+
+
+
+
+
+
+
+
+
+
+
+-> QUANDO USAMOS O SAIL E O DOCKER,
+    O SETUP É DIFERENTE...
+
+
+
+
+
+--> É POR ISSO QUE INSTALAMOS O LARAVEL DENTRO DA LINUX DISTRIBUTION,
+DENTRO DESSE FOLDER DE  wsl.localhost/Ubuntu 
+
+
+
+
+
+
+
+
+
+
+
+
+--> ABRIMOS ESSE PROJECT...
+
+
+
+
+
+
+
+--> ANTES DISSO, RODAMOS ISTO:
+
+
+
+After the application has been created, you can navigate to the application directory and start Laravel Sail. Laravel Sail provides a simple command-line interface for interacting with Laravel's default Docker configuration:
+
+./vendor/bin/sail up
+
+
+
+
+
+
+
+
+
+
+--> ISSO VAI RODAR OS DOCKER CONTAINERS DESSE APP LARAVEL SAIL...
+
+
+
+
+
+
+
+
+
+-> TEMOS AS VÁRIAS PASTAS:
+
+
+
+
+
+
+
+
+
+app 
+bootstrap 
+config 
+database 
+public 
+resources 
+routes 
+storage 
+tests 
+vendor
+
+
+
+
+
+
+
+
+
+-->  docker-compose.yml:
+
+
+    já está configurado com tudo necessário para rodar esse app laravel...
+
+
+
+
+
+
+
+
+--> LARAVEL SAIL --> CABE DESTACAR QUE 
+
+
+
+
+                        ''LARAVEL SAIL USES PHP'S BUILT-IN SERVER... THIS MEANS 
+                        THAT IT DOES NOT USE NGINX AND PHP FPM (which you might be familiar 
+                        from the previous lessons)....''
+
+                
+
+                --> POR ENQUANTO, NÃO PRECISAMOS 
+                    DE NGINX E FPM... MAS SE PRECISARMOS,
+                    VAMOS ADICIONÁ-LOS...
+
+
+
+
+
+
+
+
+
+            --> ABRIMOS O BROWSER,
+
+            E ABRIMOS 'localhost'..
+
+
+
+
+
+
+
+            --> ENCONTRAMOS A DEFAULT LARAVEL HOME PAGE...
+
+
+
+
+            -> SIGNIFICA QUE NOSSO APP LARAVEL ESTÁ RODANDO,
+             E ESTAMOS PRONTOS...
+
+
+
+
+
+
+
+
+
+
+
+             -> MAS PODEMOS ENCONTRAR ESTE ERROR:
+
+
+             'Base table or view not found: Table laravels.sessions doesnt exist'..
+
+
+
+
+
+
+            -> ISSO SIGNIFICA QUE AS MIGRATIONS DO LARAVEL NÃO RODARAM... É A CAUSA DO ERRO.... 
+
+
+
+
+
+
+
+
+
+            -> PARA RODAR ESSAS MIGRATIONS,
+             PRECISAMOS RODAR 
+
+
+             php artisan migrate,
+
+             ou, no caso,
+
+
+
+             ./vendor/bin/sail artisan migrate
+
+
+
+
+
+
+
+
+
+
+
+        ISSO VAI MIGRAR NOSSA DATABASE, E VAI CRIAR TODAS NOSSAS 
+        TABLES, AS TABLES NECESSÁRIAS...
