@@ -3,3 +3,809 @@
 
 
 
+
+
+
+
+
+FALAREMOS SOBRE ROUTING...
+
+
+
+
+
+
+
+
+
+
+
+ROUTING --> PROCESSO EM QUE VC ACEITA 1 REQUEST,
+
+            MAPEIA ELA A 1 ACTION,
+            E AÍ RETORNA 1 RESPONSE...
+
+
+
+
+
+
+
+    
+
+-> PODE OCORRER OU ATRAVÉS DO CONSOLE 
+    OU ATRAVÉS DE 1 WEB REQUEST...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+QUANDO 1 USER VISITA 1 URL,
+
+
+O ROUTER CONECTA ESSE REQUEST A 1 ENDPOINT DO SEU APP..
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> em 'routes',
+
+
+temos:
+
+
+
+
+
+console.php
+web.php 
+
+
+
+
+
+
+
+
+
+
+--> a parte do 'console.php' define 
+
+    os closure-based console commands..
+
+
+
+
+
+
+
+--> web.php --> armazena a maior parte das http routes do seu app...
+
+
+
+
+
+
+
+
+
+
+console.php 
+
+
+não contém 
+
+
+
+routing definitions tradicionais 
+
+WEB,
+
+
+
+mas 
+ 
+PODE SER CONSIDERADO COMO 1 ROUTING DE CONSOLE... 
+
+
+
+ISSO PQ VC DEFINE 'CONSOLE-BASED ENTRYPOINTS'... E ESSES SÃO 'CLOSURE-BASED COMMANDS'...
+
+
+
+
+
+
+
+
+
+--> falaremos mais sobre isso quando entrarmos no tópico de 
+    create de custom commands... 
+
+
+
+
+
+
+
+
+-> VC PODE TER MAIS ROUTE FILES DENTRO  DO FOLDER DE 'routes'...
+
+
+
+
+
+
+
+-> VC PODERIA, POR EXEMPLO, TER 1 ARQUIVO EXTRA, DE NOME 'api.php'...,
+
+
+    QUE ENTÃO CONTERIA SUAS API-related routes...
+
+
+
+
+
+
+
+
+-> VC TAMBÉM PODE SPLITTAR SUA FILE 'web.php' 
+
+    em arquivos route adicionais,
+
+
+
+    ou então criar sua própria estrutura de routes,
+
+    para evitar que 'web.php' 
+
+    cresca a um tamanho absurdo...
+
+
+    talvez vc queira ter algumas routes exclusivas ao admin,
+
+    que seriam colocadas dentro de 1 arquivo 'admin.php'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> DENTRO DE 'web.php',
+
+TEMOS 1 ÚNICA ROUTE DEFINIDA:
+
+
+
+
+
+
+
+<?php
+
+use Illuminate\Support\Facades\Route;
+
+Route::get('/', function () {
+    return view('welcome');
+});
+
+
+
+
+
+
+
+
+
+--> quando vc visita o localhost no browser,
+
+
+vc vê justamente essa página...
+
+
+
+
+
+
+
+
+
+
+'return view()"
+
+
+
+
+
+-> essa helper function exige 1 template file... no caso,
+
+
+o arquivo blade dentro de 
+
+
+resources>views> (welcome.blade.php)...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> OK... APESAR DO DEFAULT SER O RETURN DE 1 VIEW,
+
+
+    É CLARO QUE PODEMOS RETORNAR OUTRAS COISAS, COMO 
+
+    PLAIN TEXT (como 'welcome')...
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+<?php
+
+use Illuminate\Support\Facades\Route;
+
+Route::get('/', function () {
+    return view('welcome');
+});
+
+Route::get('/text', function () {
+    return 'some plain text';
+});
+
+
+
+
+
+
+
+
+
+CERTO... E ISSO REALMENTE FUNCIONA...
+
+
+
+
+
+
+
+
+
+---> PODEMOS DEFINIR ROUTE DE POST, TAMBÉM...
+
+
+
+
+
+
+
+
+
+
+
+-> essa route pode disparar 1 action, de dentro de nossos controllers...
+
+
+
+
+
+
+
+
+
+
+
+-> VC PODE RETORNAR TEXT, TEMPLATES, JSON, ETC..
+
+
+
+
+
+
+
+
+
+
+
+O ROUTER DO LARAVEL É BEM FLEXÍVEL... ELE TE DEIXA DEFINIR 
+
+
+PARA VERBS DIFERENTES DE REQUEST, COMO DELETE, POST, PUT, PATCH, OPTIONS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+MAS EXISTIRÃO CASES EM QUE VC VAI QUERER QUE 1 MESMA ROUTE SEJA CAPAZ DE 
+HANDLAR MÚLTIPLOS REQUEST TYPES...
+
+
+
+
+
+
+
+
+
+
+PARA ISSO, PODEMOS USAR 2 METHODS ÚTEIS... 
+
+
+OS METHODS SÃO:
+
+
+
+1) 'Route::match()',
+        que pode ser 
+
+
+        USADO PARA ESPECIFICAR EXATAMENTE QUAIS 
+
+        METHODS ELA DEVE HANDLAR...
+
+
+
+
+
+TIPO ASSIM:
+
+
+Route::match(['get', 'post'], '/text', function () {
+    return 'some plain text';
+});
+
+
+
+
+
+
+
+
+
+
+AGORA, SE RECEBERMOS 1 REQUEST PARA TANTO 'get' ou 'post',
+
+será executado aquele return ali... 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> SE VC PRECISA DE 1 ROUTE QUE RESPONDA A TODOS TIPOS DE HTTP REQUESTS,
+
+
+
+VC PODE USAR 'Route::any()",
+
+
+TIPO ASSIM:
+
+
+
+
+Route::any( '/text', function () {
+    return 'some plain text';
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+SE VC FOR USAR 'any' ou qualquer termo mais AMPLO,
+
+vc sempre deve definí-los POR ÚLTIMO,
+
+e deixar os mais específicos ANTES...
+
+
+
+
+
+
+
+
+
+
+
+
+--> O ROUTER DO LARAVEL TEM MTAS OUTRAS FEATURES,
+
+COMO 'redirect()'..
+
+
+
+
+-> ESSE METHOD TE DEIXA REDIRECIONAR, CONVENIENTEMENTE,
+
+DE 1 ROUTE PARA OUTRA...
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+<?php
+
+use Illuminate\Support\Facades\Route;
+
+
+
+
+Route::get('/', function () {
+    return view('welcome');
+});
+
+Route::get('/dashboard', function () {
+    return 'Welcome to the dashboard';
+});
+
+Route::get('/users', function () {
+    return ['John', 'Mary', 'Peter'];
+});
+
+Route::redirect('/home', '/dashboard');
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> NA IMPLEMENTAÇÃO DE 'redirect()',
+
+    podemos 
+
+    encontrar uma call de 
+
+
+    '$this->any()' -->  ISSO QUER DIZER QUE ANY KIND OF REQUESTS, TO THIS URI, WILL BE REDIRECTED TO THE DESTINATION...
+
+
+
+
+
+
+
+
+
+SE VC DESEJA VISUALIZAR TODAS AS ROUTES DO SEU APP,
+
+VC PODE USAR 
+
+1 COMANDO DO ARTISAN,
+
+CHAMADO DE 
+
+
+
+
+
+php artisan route:list  
+
+
+
+
+
+
+
+isso nos mostra todas as routes definidas em web.php:
+
+
+
+
+
+
+  GET|HEAD       / ..................................................................................... 
+  GET|HEAD       dashboard .............................................................................  
+  ANY            home .......................................... Illuminate\Routing › RedirectController  
+  GET|HEAD       storage/{path} .......................................................... storage.local  
+  GET|HEAD       up ....................................................................................  
+  GET|HEAD       users .................................................................................
+
+
+
+
+
+
+
+
+
+
+  'up' 
+
+  É CONSIDERADO COMO UMA 'vendor route',
+
+
+  PQ 
+
+
+  ELA É DEFINIDA PELO LARAVEL, E NÃO POR NÓS...
+
+
+
+
+
+
+
+  welcome.blade.php --> é a view que 
+
+
+                    é exibida quando estamos em maintenance mode...
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+PS C:\Users\Usuario\Desktop\NOVAS AULAS LARAVEL\relearning-laravel\gio-example> php artisan route:list --except-vendor
+
+  GET|HEAD       / ..................................................................................... 
+  GET|HEAD       dashboard .............................................................................  
+  ANY            home .......................................... Illuminate\Routing › RedirectController  
+  GET|HEAD       users .................................................................................  
+
+                                                                                      Showing [4] routes  
+
+PS C:\Users\Usuario\Desktop\NOVAS AULAS LARAVEL\relearning-laravel\gio-example>
+
+
+
+
+
+
+
+
+
+
+também podemos escrever assim:
+
+
+
+
+
+php artisan route:list --path=dashboard 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+FALAMOS SOBRE CACHING ANTES,
+
+RAPIDAMENTE, QUANDO FALAMOS SOBRE CONFIGURATION...
+
+
+
+
+
+
+
+
+
+
+
+
+TEMOS 1 COMANDO PARA CACHERA CONFIGS, NO LARAVEL....
+
+TAMBÉM TEMOS 1 COMANDO ARTISAN QUE PODE SER USADO PARA 
+
+
+___CACHEAR __ ROUTES,
+NO LARAVEL...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+''CADA VEZ QUE 1 REQUEST É FEITO,
+ O LARAVEL TEM QUE CARREGAR E REGISTER TODAS SUAS ROUTES...
+ APESAR DE ISSO NÃO SER MT TIME-CONSUMING, PODE TER ALGUM IMPACTO,
+ SE VC TIVER VÁRIAS ROUTES, EM VÁRIAS FILES DIFERENTES...''
+
+
+
+
+ PARA EVITAR ISSO, PODEMOS USAR O COMANDO DE CACHE DE ROUTRES,
+
+ QUE É 
+
+
+ php artisan route:cache
+
+
+
+
+
+
+
+
+
+ -> isso basicamente SERIALIZA/COMPILA TODAS AS ROUTES EM 1 ÚNICA FILE,
+    PARA QUE ELAS SEJAM EXTRAÍDAS DE 1 ÚNICA FILE,
+     EM VEZ DE MÚLTIPLAS FILES...
+
+
+
+
+
+
+
+
+
+    essa cached file fica armazenada em bootstrap>cache>routes-v7.php...
+
+
+
+
+
+
+
+
+
+
+SE ADICIONAMOS NOVAS ROUTES OU UPDATAMOS ROUTES JÁ EXISTENTES,
+
+É CLARO QUE O CACHE NÃO VAI ATUALIZAR AUTOMATICAMENTE... AÍ PRECISAMOS 
+
+RE-GERAR O CACHE,
+POR MEIO DE 
+
+
+php artisan route:cache 
+
+
+
+
+
+
+--> É BOM DEIXAR O ROUTE CACHING DESATIVADO EM DEVELOPMENT,
+E DEIXAR LIGADO EM STAGING/PRODUCTION,
+
+PARA AUMENTAR SUA PERFORMANCE...
+
+
+
+
+
+
+PARA LIMPAR O CACHE LOCALMENTE,
+
+
+É BOM RODAR 
+
+php artisan route:clear
