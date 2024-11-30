@@ -1,0 +1,2434 @@
+
+
+
+
+
+
+
+
+
+AS CONFIGURATION FILES DO LARAVEL SÃO ARMAZENADAS 
+
+NO FOLDER DE 'config'...
+
+
+
+
+
+
+
+
+
+CADA FILE NESSE FOLDER CORRESPONDE A ALGUMA PARTE DO SEU APP,
+
+
+COMO:
+
+
+
+1) LOGGING
+
+
+2) DATABASE SETTINGS 
+
+
+3) CORE CONFIGURATIONS OF THE APP 
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> NÃO VEREMOS TODAS AS OPTIONS... MAS VEREMOS ALGUMAS DELAS...
+
+
+
+
+
+
+
+
+
+
+--> app.php 
+
+
+
+
+
+
+
+
+--> ESSE ARQUIVO DE CONFIG CONTÉM OS BASIC CONFIGURATION SETTINGS...
+
+
+
+COMO:
+
+
+
+1) APP NAME 
+
+
+
+2) APPLICATION ENVIRONMENT (DEV/PRODUCTION)
+
+
+3) DEBUG MODE ACTIVATED OR NOT 
+
+
+4) TIMEZONE 
+
+
+5) ENCRYPTION KEY 
+
+
+
+
+etc etc...
+
+
+
+
+
+
+
+
+-> 
+
+
+
+
+
+
+APP_DEBUG --> isso determina se os errors são mostrados na tela ou não...
+
+
+
+
+
+-> PARA DEVELOPMENT, SERIA BOM TER ISSO SETTADO COMO TRUE...
+
+
+
+--> MAS PARA STAGING E PRODUCTION,
+
+    É IDEAL DEIXAR ISSO COMO OFF,
+
+    PARA EVITAR STACK TRACES, EXPOSE DE ERRORS,
+
+    E SENSITIVE VALUES...
+
+
+
+
+
+
+
+
+--> ESSAS CONFIGURATION FILES SÃO SIMPLESMENTE PHP FILES 
+    QUE RETORNAM ARRAYS DE KEY-VALUE PAIRS CONFIGURATION OPTIONS...
+
+
+
+
+
+
+
+
+
+
+
+--> OS VALUES GERALMENTE USAM 
+
+
+A HELPER FUNCTION 'env()' do laravel...
+
+
+essa 
+
+FUNCTION PEGA O VALUE DA CONFIGURATION OPTION LÁ DA CONFIGURATION FILE,
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+    'name' => env('APP_NAME', 'Laravel'),
+
+
+
+
+
+
+
+
+
+E ISSO É OBTIDO LÁ DE '.env',
+
+
+
+
+tipo assim:
+
+
+
+
+APP_NAME=Laravel
+APP_ENV=local
+APP_KEY=base64:WCwTAyfWbEHMt2Jkf6g2UwwvXCBCbEAvDKwEpl5zjXI=
+APP_DEBUG=true
+APP_TIMEZONE=UTC
+APP_URL=http://localhost
+
+APP_LOCALE=en
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+COMO VC PODE VER, TUDO FICA CENTRALIZADO DENTRO DE '.env'...
+
+
+
+
+
+
+
+QUANDO O LARAVEL É INSTALADO,
+
+
+ELE AUTOMATICAMENTE CRIA O ARQUIVO '.env'
+
+
+para seu local environment,
+
+
+
+
+com alguns default values..
+
+
+
+
+
+
+
+
+
+O LARAVEL USA A HELPER FUNCTION DE 'env()'
+
+
+PARA LER ALGUNS DOS VALUES,
+ 
+
+ PARA FAZER OVERRIDE DE ALGUMAS DAS CONFIGURATION OPTIONS...
+
+
+
+
+
+
+
+
+ -> ISSO É ÚTIL PQ VC TERÁ DIFERENTES CONFIGS ENTRE 
+ O DEV E PRODUCTION ENVIRONMENT...
+
+
+
+
+
+
+
+
+
+ -> É POR ISSO QUE VC VAI DEFINIR ESSES VALUES 
+
+    NO ARQUIVO '.env',
+
+
+    E ENTÃO VAI 
+
+
+    LER ELES, LÁ NAS CONFIG FILES,
+
+
+    POR MEIO DESSA HELPER FUNCTION DE 'env()'...
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+-> PARA FAZER TUDO ISSO,
+    o laravel usa a library 
+
+    de 
+
+
+    .phpenv,
+
+    POR TRÁS DAS CENAS... 
+
+
+
+
+
+
+
+
+
+BASICAMENTE, COM ESSA LIB,
+
+
+AS AS VARIABLES DEFINIDAS DENTRO DO SEU ARQUIVO '.env'
+
+
+SÃO CARREGADAS DENTRO DA VARIABLE '$_ENV',
+
+
+
+e então podem ser acessadas, através da helper function de 
+
+
+'env()',
+
+
+exatamente como fizemos no curso anterior...
+
+
+
+
+
+
+
+
+--> para isso, podemos usar o 
+    laravel tinker,
+
+
+
+    para testar...
+
+
+    basta rodar assim:
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+PS C:\Users\Usuario\Desktop\NOVAS AULAS LARAVEL\relearning-laravel\gio-example> php artisan tinker
+Psy Shell v0.12.5 (PHP 8.3.11 — cli) by Justin Hileman
+
+
+> $_ENV
+= [
+    "ACSetupSvcPort" => "23210",
+    "ACSvcPort" => "17532",
+    "ALLUSERSPROFILE" => "C:\ProgramData",
+    "AMDRMPATH" => "C:\Program Files\AMD\RyzenMaster\",
+    "APPDATA" => "C:\Users\Usuario\AppData\Roaming",
+    "ChocolateyInstall" => "C:\ProgramData\chocolatey",
+    "ChocolateyLastPathUpdate" => "133557165727261368",
+    "CommonProgramFiles" => "C:\Program Files\Common Files",
+    "CommonProgramFiles(x86)" => "C:\Program Files (x86)\Common Files",
+    "CommonProgramW6432" => "C:\Program Files\Common Files",
+    "COMPUTERNAME" => "DESKTOP-S1M32O5",
+    "ComSpec" => "C:\Windows\system32\cmd.exe",
+    "DriverData" => "C:\Windows\System32\Drivers\DriverData",
+    "ffmpeg" => "C:\ffmpeg\bin",
+    "FPS_BROWSER_APP_PROFILE_STRING" => "Internet Explorer",
+    "FPS_BROWSER_USER_PROFILE_STRING" => "Default",
+    "GOPATH" => "C:\Users\Usuario\go",
+    "HOMEDRIVE" => "C:",
+    "HOMEPATH" => "\Users\Usuario",
+    "LOCALAPPDATA" => "C:\Users\Usuario\AppData\Local",
+    "LOGONSERVER" => "\\DESKTOP-S1M32O5",
+    "MOZ_PLUGIN_PATH" => "C:\Program Files (x86)\Foxit Software\Foxit PDF Reader\plugins\",
+    "NUMBER_OF_PROCESSORS" => "12",
+    "NVM_HOME" => "C:\Users\Usuario\.config\herd\bin\nvm",
+    "NVM_SYMLINK" => "C:\Program Files\nodejs",
+    "OneDrive" => "C:\Users\Usuario\OneDrive",
+    "ORIGINAL_XDG_CURRENT_DESKTOP" => "undefined",
+    "OS" => "Windows_NT",
+    "Path" => "C:\Users\Usuario\AppData\Local\Programs\Python\Python312\Scripts\;C:\Users\Usuario\AppData\Local\Programs\Python\Python312\;C:\Program Files (x86)\Common Files\Oracle\Java\javapath;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\Windows\System32\OpenSSH\;C:\Program Files\Git\cmd;C:\Program Files\Go\bin;C:\Program Files (x86)\ZeroTier\One\;C:\Program Files\nodejs\;C:\ProgramData\chocolatey\bin;C:\Program Files\dotnet\;C:\Program Files\Docker\Docker\resources\bin;C:\ProgramData\ComposerSetup\bin;C:\Python310\geckodriver-v0.35.0-win-aarch64;C:\Strawberry\c\bin;C:\Strawberry\perl\site\bin;C:\Strawberry\perl\bin;C:\Users\Usuario\.config\herd\bin\nvm;C:\Program Files\nodejs;C:\Program Files\OpenSCAD\openscad;C:\Users\Usuario\.config\herd\bin;C:\Users\Usuario\.cargo\bin;C:\Users\Usuario\AppData\Local\Microsoft\WindowsApps;C:\Users\Usuario\AppData\Local\Programs\Microsoft VS Code\bin;C:\Users\Usuario\go\bin;C:\Users\Usuario\AppData\Roaming\npm;C:\Users\Usuario\AppData\Local\Programs\VSCodium\bin;C:\ffmpeg\bin;C:\xampp\php;C:\Users\Usuario\AppData\Roaming\Composer\vendor\bin;C:\Program Files\JetBrains\PhpStorm 2023.1.3\bin;;C:\Program Files\OpenSCAD;C:\Program Files\OpenSCAD\openscad.exe;",
+    "PATHEXT" => ".COM;.EXE;.BAT;.CMD;.VBS;.VBE;.JS;.JSE;.WSF;.WSH;.MSC;.PY;.PYW;.CPL",    "PhpStorm" => "C:\Program Files\JetBrains\PhpStorm 2023.1.3\bin;",
+    "PROCESSOR_ARCHITECTURE" => "AMD64",
+    "PROCESSOR_IDENTIFIER" => "AMD64 Family 25 Model 33 Stepping 0, AuthenticAMD",     
+    "PROCESSOR_LEVEL" => "25",
+    "PROCESSOR_REVISION" => "2100",
+    "ProgramData" => "C:\ProgramData",
+    "ProgramFiles" => "C:\Program Files",
+    "ProgramFiles(x86)" => "C:\Program Files (x86)",
+    "ProgramW6432" => "C:\Program Files",
+    "PROMPT" => "$P$G",
+    "PSModulePath" => "C:\Users\Usuario\Documents\WindowsPowerShell\Modules;C:\Program 
+Files\WindowsPowerShell\Modules;C:\Windows\system32\WindowsPowerShell\v1.0\Modules",   
+    "PUBLIC" => "C:\Users\Public",
+    "RlsSvcPort" => "22112",
+    "SESSIONNAME" => "Console",
+    "SystemDrive" => "C:",
+    "SystemRoot" => "C:\Windows",
+    "TEMP" => "C:\Users\Usuario\AppData\Local\Temp",
+    "TMP" => "C:\Users\Usuario\AppData\Local\Temp",
+    "USERDOMAIN" => "DESKTOP-S1M32O5",
+    "USERDOMAIN_ROAMINGPROFILE" => "DESKTOP-S1M32O5",
+    "USERNAME" => "Usuario",
+    "USERPROFILE" => "C:\Users\Usuario",
+    "windir" => "C:\Windows",
+    "yt-dlp" => "C:\yt-dlp.exe",
+    "TERM_PROGRAM" => "vscode",
+    "TERM_PROGRAM_VERSION" => "1.95.3",
+    "LANG" => "en_US.UTF-8",
+    "COLORTERM" => "truecolor",
+    "GIT_ASKPASS" => "c:\Users\Usuario\AppData\Local\Programs\VSCodium\resources\app\extensions\git\dist\askpass.sh",
+    "VSCODE_GIT_ASKPASS_NODE" => "C:\Users\Usuario\AppData\Local\Programs\VSCodium\VSCodium.exe",
+    "VSCODE_GIT_ASKPASS_EXTRA_ARGS" => "",
+    "VSCODE_GIT_ASKPASS_MAIN" => "c:\Users\Usuario\AppData\Local\Programs\VSCodium\resources\app\extensions\git\dist\askpass-main.js",
+    "VSCODE_GIT_IPC_HANDLE" => "\\.\pipe\vscode-git-c83402131d-sock",
+    "VSCODE_INJECTION" => "1",
+    "APP_NAME" => "Laravel",
+    "APP_ENV" => "local",
+    "APP_KEY" => "base64:WCwTAyfWbEHMt2Jkf6g2UwwvXCBCbEAvDKwEpl5zjXI=",
+    "APP_DEBUG" => "true",
+    "APP_TIMEZONE" => "UTC",
+    "APP_URL" => "http://localhost",
+    "APP_LOCALE" => "en",
+    "APP_FALLBACK_LOCALE" => "en",
+    "APP_FAKER_LOCALE" => "en_US",
+    "APP_MAINTENANCE_DRIVER" => "file",
+    "PHP_CLI_SERVER_WORKERS" => "4",
+    "BCRYPT_ROUNDS" => "12",
+    "LOG_CHANNEL" => "stack",
+    "LOG_STACK" => "single",
+    "LOG_DEPRECATIONS_CHANNEL" => "null",
+    "LOG_LEVEL" => "debug",
+    "DB_CONNECTION" => "mysql",
+    "DB_HOST" => "127.0.0.1",
+    "DB_PORT" => "3306",
+    "DB_DATABASE" => "laravel",
+    "DB_USERNAME" => "laravel",
+    "DB_PASSWORD" => "laravel",
+    "SESSION_DRIVER" => "database",
+    "SESSION_LIFETIME" => "120",
+    "SESSION_ENCRYPT" => "false",
+    "SESSION_PATH" => "/",
+    "SESSION_DOMAIN" => "null",
+    "BROADCAST_CONNECTION" => "log",
+    "FILESYSTEM_DISK" => "local",
+    "QUEUE_CONNECTION" => "database",
+    "CACHE_STORE" => "database",
+    "CACHE_PREFIX" => "",
+    "MEMCACHED_HOST" => "127.0.0.1",
+    "REDIS_CLIENT" => "phpredis",
+    "REDIS_HOST" => "127.0.0.1",
+    "REDIS_PASSWORD" => "null",
+    "REDIS_PORT" => "6379",
+    "MAIL_MAILER" => "log",
+    "MAIL_HOST" => "127.0.0.1",
+    "MAIL_PORT" => "2525",
+    "MAIL_USERNAME" => "null",
+    "MAIL_PASSWORD" => "null",
+    "MAIL_ENCRYPTION" => "null",
+    "MAIL_FROM_ADDRESS" => "hello@example.com",
+    "MAIL_FROM_NAME" => "Laravel",
+    "AWS_ACCESS_KEY_ID" => "",
+    "AWS_SECRET_ACCESS_KEY" => "",
+    "AWS_DEFAULT_REGION" => "us-east-1",
+    "AWS_BUCKET" => "",
+    "AWS_USE_PATH_STYLE_ENDPOINT" => "false",
+    "VITE_APP_NAME" => "Laravel",
+    "SHELL_VERBOSITY" => 0,
+  ]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+PODEMOS USAR O 'env()'
+
+para acessar alguns desses values,
+
+tipo assim:
+
+
+
+
+
+
+> env('AWS_BUCKET')
+= ""
+
+> env('MAIL_FROM_ADDRESS')
+= "hello@example.com"
+
+
+
+
+
+
+
+
+
+
+
+
+
+ok... e isso é melhor do que acessar as variables diretamente...
+
+
+
+
+
+
+
+
+
+
+AGORA DEVEMOS TENTAR ACESSAR 1 VARIABLE QUE NÃO EXISTE,
+
+PARA VER O QUE ACONTECE... ELE VAI RETORNAR 'null',
+
+por default:
+
+
+
+
+
+> env('dummy')
+= null
+
+>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> MAS PODEMOS PASSAR ALGUM VALUE COMO VALUE DE ESSA KEY,
+
+
+    BASTA ESCREVER TIPO ASSIM:
+
+
+
+
+
+
+> env('SOME_VARIABLE', 'some default value, whatever')
+= "some default value, whatever"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> OK... MAS É CLARO QUE ISSO NÃO SERÁ ADICIONADO NO '.env'...
+
+    será adicionado apenas na memory do app...
+
+
+
+
+
+
+
+
+
+
+-> PODEMOS CHECAR, TAMBÉM,
+
+    SE O APP ESTÁ EM STAGING OU PRODUCTION,
+
+    POR MEIO DO USO 
+
+
+    DA FACADE DE 
+
+
+
+    'app'..
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+App::environment()
+
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+> App::environment()
+= "local"
+
+
+
+
+
+
+
+
+
+
+ou seja,
+
+
+visualizamos que o environment atual é 'local'..
+
+
+
+
+
+
+--> CERTO...
+
+
+
+
+
+
+TEMOS OUTRO OVERLOAD, AQUI...
+
+
+
+
+SE PASSAMOS 1 ARGUMENTO A ESSA FUNCTION DE 'environment()',
+
+
+o LARAVEL VAI _ _CHECAR__ SE O ENVIRONMENT É REALMENTE ESSE AÍ...
+
+
+
+
+
+
+ex:
+
+
+
+
+
+App::environment('local')
+
+
+
+
+
+> App::environment('local')
+= true
+
+
+
+
+
+
+
+
+
+OU ASSIM:
+
+
+
+
+
+> App::environment('production')
+= false
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+ISSO PODE SER REALMENTE ÚTIL, ATÉ MESMO DENTRO DE NOSSO CÓDIGO...
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+> App::environment('staging')
+= false
+
+
+
+
+
+
+
+
+
+
+
+
+-> TAMBÉM PODEMOS PASSAR 1 ARRAY 
+
+como argumento ao 'environment()',
+
+
+
+para checar se 
+
+
+''o environment é ou staging ou production''...
+
+
+
+
+
+
+
+tipo assim:
+
+
+
+
+
+> App::environment('staging', 'production')
+= false
+
+
+
+
+
+
+
+
+
+E ASSIM:
+
+
+
+
+
+
+> App::environment('staging', 'local')
+= true
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OU ASSIM:
+
+
+
+
+
+
+
+
+> App::environment(['staging', 'local'])
+= true
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+FALAREMOS SOBRE FACADES MAIS TARDE NO CURSO...
+
+
+
+
+
+
+
+
+
+
+MAS, POR ENQUANTO, DEVEMOS PENSAR NELAS 
+
+
+COMO 
+
+
+
+''A CLASS THAT ACTS AS A PROXY,
+AND ALLOWS YOU TO MAKE CALLS TO THE UNDERLYING 
+CLASS INSTANCE, AND SERVICES  THROUGH A SIMPLE STATIC 
+INTERFACE''...
+
+
+
+
+
+
+--> NO NOSSO CASO,
+    ESSA CLASS INSTANCE SERIA A CLASS DE 'App' em si...
+
+
+
+
+
+
+
+
+
+--> SE ABRIMOS A CLASS DE 'Application' 
+
+E PROCURAMOS PELO METHOD DE 'environment',
+
+TEMOS ISTO:
+
+
+
+
+
+    /**
+     * Get or check the current application environment.
+     *
+     * @param  string|array  ...$environments
+     * @return string|bool
+     */
+    public function environment(...$environments)
+    {
+        if (count($environments) > 0) {
+            $patterns = is_array($environments[0]) ? $environments[0] : $environments;
+
+            return Str::is($patterns, $this['env']);
+        }
+
+        return $this['env'];
+    }
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+BASICAMENTE, QUANDO CHAMAMOS 
+
+
+
+'App::enviroment()'
+
+ESTÁTICAMENTE,
+
+ISSO É PROXIED, DE QUALQUER FORMA,
+
+
+DIRETAMETE à INSTANCE DE 'App'(Application),
+
+
+
+
+QUE CONTÉM ESSE METHOD...
+
+
+
+
+
+
+
+
+ISSO QUER DIZER QUE A FACADE DE 'App' 
+
+
+BASICAMENTE FAZ PROXY DA CALL A ESSE METHOD 'public' (mesmo que as calls tenham sido STATIC, o que é o correto a se fazer, no caso)...
+
+
+
+
+
+
+
+
+
+
+
+
+
+DENTRO DESSA CLASS DE 'Application',
+
+vc encontrará outros methods que são ou não documentados...
+
+é por isso que o professor 
+
+recomenda que vc estude o source code...
+
+
+
+
+
+se vc quer checar se certo environment é production,
+
+
+em vez de 
+
+usar 
+
+
+
+
+esta maneira:
+
+
+App::environment('production'),
+
+
+
+
+VC 
+
+PODE USAR ASSIM:
+
+
+
+
+
+
+App::isProduction(),
+
+
+
+
+
+QUE VAI RETORNAR TRUE OU FALSE...
+
+
+
+
+
+
+
+também pode checar se é local,
+
+
+com 
+
+
+
+App::isLocal()...
+
+
+
+
+
+
+
+
+
+
+
+ISSO TAMBÉM FUNCIONA 
+
+COM O  DEBUG,
+
+TIPO ASSIM:
+
+
+
+
+
+App::hasDebugModeEnabled() 
+
+
+
+
+
+
+
+A IMPLEMENTAÇÃO DESSE METHOD É BEM SIMPLES,
+
+
+É ENCONTRADA DENTRO DA CLASS DE 'Application',
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+    /**
+     * Determine if the application is running with debug mode enabled.
+     *
+     * @return bool
+     */
+    public function hasDebugModeEnabled()
+    {
+        return (bool) $this['config']->get('app.debug');
+    }
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+ISSO RETORNA O  VALUE DE DENTRO 
+
+
+DA FILE DE CONFIGURATION DE 'app.php'... 
+
+
+
+
+
+
+
+
+
+EM GERAL, EM LARAVEL,
+
+VC VAI PERCEBER QUE 
+
+
+HÁ DIVERSOS JEITOS DE OBTER OS MESMOS RESULTADOS...
+
+
+
+
+
+
+VC TAMBÉM PODE PEGAR OS CONFIG VALUES LÁ DO 'app.php',
+
+
+e aí fazer o check diretamente...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... MAS AGORA PRECISAMOS FALAR DE 
+
+
+''HOW TO ACCESS CONFIGURATION VALUES,
+    FROM THESE CONFIGURATION FILES''...
+
+
+
+
+
+
+
+
+
+
+-> NÓS USAMOS, ANTES, 'env()'...
+
+
+
+
+
+
+
+
+
+-> MAS ALÉM DE 'env()',
+
+    temos outra helper function super útil,
+
+    que é 
+
+
+
+    'config()'...
+
+
+
+
+
+
+
+--> ESSA CONFIG helper function exige que vc 
+    use a DOT SYNTAX...
+
+
+
+
+
+
+tipo assim:
+
+
+
+
+> config('app.name')
+= "Laravel"
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+E ISSO REALMENTE FUNCIONA...
+
+
+
+
+
+
+
+
+
+
+
+CERTO... E, SE AQUELA KEY NÃO EXISTE,
+
+DENTRO DO CONFIG OBJECT,
+
+
+
+
+PODEMOS ESPECIFICAR O DEFAULT VALUE DAQUELA KEY,
+
+TIPO ASSIM:
+
+
+
+
+> config('app.test')
+= null
+
+
+
+
+
+
+
+MAS SE ESPECIFICAMOS 1 DEFAULT VALUE,
+
+ELE SERÁ SETTADO:
+
+
+
+
+> config('app.test', 'some random value, i dont know')
+= "some random value, i dont know"
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+ATÉ AÍ, TUDO BEM...
+
+
+
+
+
+
+
+
+
+CERTO, MAS E SE QUEREMOS CRIAR NOVAS CONFIG FILES,
+
+TALVEZ ESPECÍFICAS PARA NOSSO APP... ? 
+
+
+
+
+
+
+
+-_> TALVEZ VC QUEIRA ARMAZENAR SUAS CONFIGURATIONS 
+
+
+EM 1 NOVA FILE DE CONFIGURATION,
+
+DENTRO DA PASTA DE 'config',
+
+
+tipo assim:
+
+
+
+
+
+
+
+1) o nome do arquivo será 'customConfig.php'...
+
+
+
+
+
+
+2) esse arquivo sempre precisará RETORNAR UM ASSOC ARRAY...
+
+
+
+
+
+
+
+
+
+
+Ex:
+
+
+
+
+
+
+
+
+<?php
+
+
+return [
+    'customKey' => 'customValue'
+];
+
+
+
+
+
+
+
+
+
+E ASSIM:
+
+
+
+
+
+
+
+
+<?php
+
+
+return [
+    'customKey' => 'customValue',
+    'option1' => 'option1',
+    'option2' => 'option2',
+];
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+PODEMOS USAR ISSO, TAMBÉM, COM O 'env()',
+
+para retornar values definidos lá no arquivo '.env'
+
+de nosso projeto:
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+APP_NAME=Laravel
+APP_ENV=local
+APP_KEY=base64:WCwTAyfWbEHMt2Jkf6g2UwwvXCBCbEAvDKwEpl5zjXI=
+APP_DEBUG=true
+APP_TIMEZONE=UTC
+APP_URL=http://localhost
+CUSTOM_VALUE="some value"
+
+
+
+
+
+
+
+
+
+
+AÍ, LÁ NO NOSSO ARQUIVO DE CONFIG CUSTOM:
+
+
+
+
+
+
+
+
+
+<?php
+
+
+return [
+    'customKey' => 'customValue',
+    'option1' => 'option1',
+    'option2' => 'option2',
+    'option3' => env('CUSTOM_VALUE'),
+];
+
+
+
+
+
+
+
+
+
+CERTO..
+
+
+
+
+
+ISSO FEITO,
+
+PODEMOS RECARREGAR O TINKER E TESTAR SE ISSO FUNCIONA...
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+> config('customConfig.customKey')
+= "customValue"
+
+
+
+
+
+
+
+
+
+
+E ASSIM:
+
+
+
+
+> config('customConfig.option1')
+= "option1"
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+ISSO REALMENTE FUNCIONA, NO CASO....
+
+
+
+
+
+
+
+
+PQ O NOSSO ARQUIVO DE CONFIG TINHA FICADO COM ESTES VALUES:
+
+
+
+
+
+
+> config('customConfig', 'option1')
+= [
+    "customKey" => "customValue",
+    "option1" => "option1",
+    "option2" => "option2",
+    "option3" => "some value",
+  ]
+
+
+
+
+
+
+
+
+
+
+
+
+ALÉM DE PODER PEGAR VALUES DAS CONFIG FILES,
+
+PODEMOS 
+
+TAMBÉM 
+
+
+DEFINIR 
+
+VALUES PARA KEYS DURANTE O RUNTIME,
+
+
+USANDO A MESMA HELPER FUNCTION 
+
+
+
+DE 'config()'...
+
+
+
+BASTA PASSAR 1 ARRAY DE KEY-VALUE PAIRS,
+
+QUE ISSO SERÁ APLICADO DURANTE O RUNTIME DO APP,
+
+
+TIPO ASSIM:
+
+
+
+
+
+> config(['custom.option1' => 'new value 21412'])
+= null
+
+> config('custom.option1')
+= "new value 21412"
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+E ISSO REALMENTE FUNCIONA...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+QUER DIZER QUE QUANDO VC PASSA 1 ARRAY DE KEY-VALUE PAIRS,
+
+OS VALUES DAS KEYS ORIGINAIS SERÃO OVERWRITADOS,
+
+MAS APENAS DURANTE O RUNTIME DO 'CURRENT REQUEST',
+
+DURANTE O RUNTIME....
+
+
+
+
+
+
+
+
+
+--> EM VEZ DE USAR A HELPER FUNCTION DE 'config()',
+
+
+    PODERÍAMOS USAR A FACADE DE 
+
+
+    'Config'...
+
+
+
+
+    tipo assim:
+
+
+
+
+
+
+Config::get('custom.option1') 
+
+
+
+
+TAMBÉM PODEMOS 
+
+
+USAR O METHOD CALL DE '::set()',
+
+
+PARA SETTAR OUTRO VALUE PARA ALGUM KEY-VALUE PAIR,
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+Config::set('custom.option1', 'some value')
+
+
+
+
+
+
+
+E ISSO REALMENTE FUNCIONA, MAS APENAS DURANTE O RUNTIME DO SEU APP... quando vc desligar o app 
+e reiniciar, o value será perdido, voltará ao value settado dentro dos seus arquivos...
+
+
+a mudança funciona APENAS DURANTE O REQUEST, e nada mais do que isso...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... MAS O PROFESSOR RESSALTA QUE 
+
+
+
+''THERE ARE THINGS IN LARAVEL THAT  GET __ CACHED,
+
+ALL TO __ BOOST PERFORMANCE''...
+
+
+
+
+
+--> UMA DAS COISAS
+    QUE É CACHEADA É JUSTAMENTE 
+    AS CONFIGS...
+
+
+
+
+
+--> ISSO QUER DIZER QUE QUAISQUER 
+    CHANGES REALIZADAS 
+    NAS ENVIRONMENT VARIABLES 
+
+    NÃO SERÃO REFLETIDAS DURANTE O RUNTIME...
+
+
+
+
+
+
+
+
+
+
+SE NOSSA CONFIGURATION É CACHEADA,
+
+
+
+E SE QUEREMOS OBTER VALUES DURANTE O RUNTIME,
+
+SOMOS FORÇADOS A LIMPAR O CACHE...
+
+
+
+
+
+
+
+
+
+
+--> PARA LIMPAR  O CACHE,
+
+
+
+DEVEMOS RODAR 
+
+O COMANDO 
+
+
+
+
+./vendor/bin/sail artisan config:clear 
+
+
+
+
+
+
+
+
+
+o outro comando, para CACHEAR nossa configuration,
+
+é 
+
+
+
+./vendor/bin/sail artisan config:cache 
+
+
+
+
+
+
+
+caches geralmente são bons, no entanto...
+
+
+
+
+
+
+
+
+
+
+
+
+OK...
+
+
+''WHEN THE CONFIG FILES ARE CACHED,
+
+    LARAVEL COMBINES ALL YOUR CONFIGURATION FILES INTO A SINGLE FILE,
+    THAT THEN CAN BE QUICKLY LOADED BY THE FRAMEWORK''...
+
+
+
+
+
+
+
+
+
+-> MAS É MELHOR 
+    NÃO CACHEAR COISAS LOCALMENTE,
+    PQ VC VAI TIPICAMENTE 
+    MUDAR AS COISAS COM BASTANTE FREQUÊNCIA,
+    NO DEVELOPMENT MODE...
+
+
+
+
+
+
+
+-> MAS VC DEVE FAZER CACHE DURANTE PRODUCTION,
+    TUDO PARA CONSEGUIR 1 POUCO DE BOOST DE PERFORMANCE...
+
+
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR NOS MOSTRA A APARÊNCIA 
+
+    DA CACHE FILE...
+
+
+
+
+
+
+
+--> ELA PODE SER ENCONTRADA EM 'bootstrap>cache>config.php'..
+
+
+
+
+
+COMO VC PODE VER,
+
+
+ISSO É APENAS 1 FILE SIMPLES,
+
+COM 1 ARRAY GIGANTE,
+
+COM KEY-VALUE PAIRS DE BASICAMENTE TODAS AS CONFIGURAÇÕES 
+
+    DE SEU APP...
+
+
+
+
+
+
+
+
+
+
+
+-> TEMOS CACHES DE OUTRAS COISAS, É CLARO....
+
+
+
+
+
+
+
+
+-> A IMPORTÂNCIA DE CACHES É QUE:
+
+
+''ONCE CONFIGS ARE CACHED,
+    LARAVEL IS NOT GOING TO LOAD THE .env file 
+    DURING REQUESTS, OR WHEN EXECUTING ARTISAN COMMANDS''..
+
+
+
+
+
+--> ISSO QUER DIZER QUE, SE VC TENTAR ACESSAR ENVIRONMENT VARIABLES 
+    USANDO  a function de 'env()',
+
+    ISSO NÃO FUNCIONARÁ,
+
+
+    PQ __ AÍ A HELPER FUNCTION DE 'env()"
+
+    VAI APENAS CONTER KEY-VALUE PAIRS DE CONFIGS 
+
+    DIRETAMENTE 'system-level',
+
+    E NENHUM DOS KEY-VALUE PAIRS QUE VC PODE TER SETTADO,
+
+    LÁ NO SEU ARQUIVO '.env'...
+
+
+
+
+
+
+
+
+--> É POR ISSO QUE É RECOMENDADO NÃO USAR 
+    A HELPER FUNCTION DE 'env()'
+
+    EM LUGARES EXTERNOS àS FILES que existem dentro de 'config', do folder de 
+    'config'...
+
+
+
+
+    ISSO É PQ, SE VC TENTA USAR ESSA FUNCTION DENTRO DOS SEUS CONTROLLERS/SERVICE 
+    CLASSES, NADA VAI GARANTIR QUE VC VAI OBTER OS VALUES DESEJADOS POR VOCÊ...
+    PQ SE A SUA CONFIGURATION ESTIVER CACHED,
+    OS VALUES NÃO SERÃO MAIS RETORNADOS por 'env()',
+
+    ISSO PQ ENTÃO O ARQUIVO '.env' NÃO ESTARÁ MAIS SENDO CARREGADO PELO FRAMEWORK...
+
+
+    É POR ISSO QUE, EM VEZ DE USAR 'env()', vc DEVE USAR A FUNCTION DE 
+
+    'config()'...
+
+
+
+    ISSO É PQ 'config()" RETRIEVA OS VALUES LÁ DO CACHE,
+
+    E NÃO DIRETAMENTE DO '.env' file...
+
+
+
+
+
+
+
+
+
+
+''IN YOUR APP CODE,
+ALWAYS USE THE config() helper function or the Config FACADE 
+TO GET YOUR CONFIGURATION VALUES/ENVIRONMENT VARIABLES 
+FROM THE CACHE OF YOUR ENV FILES...''
+
+
+'' DO NOT USE THE env() HELPER FUNCTION TO GET 
+YOUR ENVIRONMENT FILES''..
+
+
+
+
+
+
+
+OUTRA COISA LEGAL:
+
+
+
+''ANTES DE CARREGAR AS ENVIRONMENT VARIABLES DE SEU APP, 
+    O LARAVEL CHECA SE O ENVIRONMENT VARIABLE app.env 
+    ESTÁ SETTADO EXTERNAMENTE, OU SE 
+
+    O COMMAND LINE FOI USADO... SE QUALQUER CONDIÇÃO DESSAS FOR SATISFEITA,
+
+    O LARAVEL VAI TENTAR CARREGAR A FILE DE '.env.app'''...
+
+
+
+
+
+
+
+
+
+
+
+
+--> tipo assim:
+
+
+
+
+1) file de nome '.env.local' 
+
+
+
+2) file de nome '.env.production' 
+
+
+
+3) file de nome '.env.staging'
+
+
+
+
+
+
+
+
+
+se tivermos '.env.local',
+
+e se estivermos no modo de 'local',
+
+
+O 
+
+
+'.env.local' será 
+
+
+
+ESCOLHIDO, EM VEZ DAS OUTRAS .env files...
+
+
+
+
+isso se vc usar a flag de 
+
+
+--APP_ENV=local,
+
+
+
+
+
+
+durante o comando de php artisan tinker 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... MAS DIGAMOS QUE VC QUER CONFIGURAR OUTRA COISA,
+TALVEZ ALGUMA COISA RELACIONADA AO 'hashing'... 
+
+
+
+
+
+
+
+
+
+-> VC PODE PERCEBER QUE A CONFIGURATION FILE DE 'hashing' 
+
+
+NÃO É ENCONTRADA DENTRO DO FOLDER DE 'config'...
+
+
+
+
+
+
+
+
+
+-> ISSO ACONTECE PQ NÃO SÃO TODAS AS CONFIG FILES QUE PODEM 
+SER ENCONTRADAS, DENTRO DO FOLDER DE 'config'... a maior parte 
+delas pode ser, sim, mas algumas são 'ocultas'...
+
+
+
+
+    isso foi feito assim pq GERALMENTE VC NÃO PRECISA ALTERAR 
+    ESSAS FILES...
+
+
+
+
+
+---> MAS SE VC QUER ALTERAR ESSAS CONFIG FILES,
+    BASTA USAR O COMANDO DE 'php artisan config:publish'
+
+
+
+
+
+
+-> SE FAZEMOS ISSO, FICAMOS COM 1 PROMPT:
+
+
+
+
+
+
+ Which configuration file would you like to publish?
+  app .............................................................................................. app  
+  auth ............................................................................................ auth  
+  broadcasting ............................................................................ broadcasting  
+  cache .......................................................................................... cache  
+  concurrency .............................................................................. concurrency  
+  cors ............................................................................................ cors  
+  database .................................................................................... database  
+  filesystems .............................................................................. filesystems  
+  hashing ...................................................................................... hashing  
+  logging ...................................................................................... logging  
+  mail ............................................................................................ mail  
+  queue .......................................................................................... queue  
+  services .................................................................................... services  
+  session ...................................................................................... session  
+  view ............................................................................................ view  
+❯ 
+
+
+
+
+
+
+
+
+
+
+
+COM ISSO, PODEMOS ESCOLHER QUAL CONFIG FILE QUEREMOS PUBLISH...
+
+
+
+
+
+
+
+
+-> SE ESCOLHEMOS O HASHING, APERTAMOS ENTER,
+
+
+E AÍ 
+
+A FILE É CRIADA DENTRO DO FOLDER....
+
+
+
+'hashing.php':
+
+
+
+
+
+
+
+<?php
+
+return [
+
+    /*
+    |--------------------------------------------------------------------------
+    | Default Hash Driver
+    |--------------------------------------------------------------------------
+    |
+    | This option controls the default hash driver that will be used to hash
+    | passwords for your application. By default, the bcrypt algorithm is
+    | used; however, you remain free to modify this option if you wish.
+    |
+    | Supported: "bcrypt", "argon", "argon2id"
+    |
+    */
+
+    'driver' => env('HASH_DRIVER', 'bcrypt'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Bcrypt Options
+    |--------------------------------------------------------------------------
+    |
+    | Here you may specify the configuration options that should be used when
+    | passwords are hashed using the Bcrypt algorithm. This will allow you
+    | to control the amount of time it takes to hash the given password.
+    |
+    */
+
+    'bcrypt' => [
+        'rounds' => env('BCRYPT_ROUNDS', 12),
+        'verify' => env('HASH_VERIFY', true),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Argon Options
+    |--------------------------------------------------------------------------
+    |
+    | Here you may specify the configuration options that should be used when
+    | passwords are hashed using the Argon algorithm. These will allow you
+    | to control the amount of time it takes to hash the given password.
+    |
+    */
+
+    'argon' => [
+        'memory' => env('ARGON_MEMORY', 65536),
+        'threads' => env('ARGON_THREADS', 1),
+        'time' => env('ARGON_TIME', 4),
+        'verify' => env('HASH_VERIFY', true),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Rehash On Login
+    |--------------------------------------------------------------------------
+    |
+    | Setting this option to true will tell Laravel to automatically rehash
+    | the user's password during login if the configured work factor for
+    | the algorithm has changed, allowing graceful upgrades of hashes.
+    |
+    */
+
+    'rehash_on_login' => true,
+
+];
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> CERTO...
+
+
+
+
+
+
+
+
+AÍ PODEMOS TROCAR COISAS, COM BASE NAS NOSSAS NECESSIDADES...
+
+
+
+        ''THIS COMMAND PUBLISHES CONFIGS FROM YOUR APP 
+        FROM THE ACTUAL LARAVEL FRAMEWORK'...
+
+
+        ''IF YOU WANT TO PUBLISH CONFIGS THAT ARE ADDED BY 
+     __ OTHER _LIBRARIES, LIKE 'TINKER', FOR EXAMPLE,
+
+
+     YOU WOULD USE THE 
+
+     php artisan vendor:publish   COMMAND'...
+
+
+
+
+
+
+
+
+
+
+
+    
+
+
+
+php artisan vendor:publish 
+
+
+
+
+
+
+
+
+
+
+
+
+ESSE COMANDO PUBLICA CONFIG FILES E OUTRAS COISAS ALÉM 
+DISSO, COMO VENDOR FILES (views, assets, etc)...
+
+
+
+
+
+
+
+SERIA TIPO ASSIM:
+
+ 
+
+
+ php artisan vendor:publish --provider="Laravel\Tinker\TinkerServiceProvider"
+
+
+
+
+
+
+
+
+
+
+ CERTO...
+
+
+
+
+
+ E ISSO REALMENTE FUNCIONA...
+
+
+
+
+o arquivo tinker.php é criado...
+
+
+
+
+
+
+ EX:
+
+
+
+
+
+
+
+
+
+
+
+ <?php
+
+return [
+
+    /*
+    |--------------------------------------------------------------------------
+    | Console Commands
+    |--------------------------------------------------------------------------
+    |
+    | This option allows you to add additional Artisan commands that should
+    | be available within the Tinker environment. Once the command is in
+    | this array you may execute the command in Tinker using its name.
+    |
+    */
+
+    'commands' => [
+        // App\Console\Commands\ExampleCommand::class,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Auto Aliased Classes
+    |--------------------------------------------------------------------------
+    |
+    | Tinker will not automatically alias classes in your vendor namespaces
+    | but you may explicitly allow a subset of classes to get aliased by
+    | adding the names of each of those classes to the following list.
+    |
+    */
+
+    'alias' => [
+        //
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Classes That Should Not Be Aliased
+    |--------------------------------------------------------------------------
+    |
+    | Typically, Tinker automatically aliases classes as you require them in
+    | Tinker. However, you may wish to never alias certain classes, which
+    | you may accomplish by listing the classes in the following array.
+    |
+    */
+
+    'dont_alias' => [
+        'App\Nova',
+    ],
+
+];
+
+
+
+
+
+
+
+
+
+vc também pode fazer isso com outras libs integradas com o laravel,
+funciona da exata mesma forma...
