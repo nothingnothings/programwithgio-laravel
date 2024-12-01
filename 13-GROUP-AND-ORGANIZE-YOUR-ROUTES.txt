@@ -1,0 +1,1325 @@
+
+
+
+
+
+
+
+
+
+AO OLHA PARA NOSSAS ROUTES,
+
+
+
+O PROFESSOR ACHA QUE PODEMOS ORGANIZÁ-LAS MELHOR...
+
+
+
+
+
+
+
+
+O QUE TODAS ESSAS ROUTES POSSUEM, EM COMUM?
+
+
+
+
+
+
+
+
+// TRANSACTIONS ON CONTROLLERS:
+Route::get('/transactions', [TransactionController::class, 'index']);
+Route::get('/transactions/{transactionId:[0-9]+}', [TransactionController::class, 'show']); // without using ROUTE MODEL BINDING.
+Route::get('/transactions/create', [TransactionController::class, 'create']);
+Route::post('/transactions', [TransactionController::class, 'store']);
+Route::put('/transactions/{transaction}', [TransactionController::class, 'update']);
+Route::delete('/transactions/{transaction}', [TransactionController::class, 'destroy']);
+
+
+
+
+
+
+
+
+
+
+
+-> TODAS ELAS ENVOLVEM O MESMO CONTROLLER...
+
+
+
+
+
+
+
+
+
+
+
+
+''PODEMOS AGRUPÁ-LAS POR CONTROLLER? OU AGRUPAR 
+    POR MEIO DO STARTING PREFIX DA URL?''
+
+
+
+
+
+
+
+
+SIM, PODEMOS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> O LARAVEL PERMITE O APPLY 
+
+DE SHARED ATTRIBUTES( como uri prefixes e middleware)
+
+
+a grupos de routes...
+
+
+
+
+
+
+
+
+
+ISSO DEIXA AS COISAS MAIS FÁCIL DE MANAGE...
+
+
+
+
+
+
+
+
+SE VC QUER AGRUPAR ISSO CONSIDERANDO O PREFIXO 'transactions',
+
+
+VC PODE USAR 
+
+
+O METHOD '::prefix',
+
+
+DIRETAMENTE NA FACADE DE 'Route'...
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+// * HOW TO GROUP ROUTES, CONSIDERING A COMMON PREFIX:
+Route::prefix('/transactions')->group(function () {
+    Route::get('/', [TransactionController::class, 'index']);
+    Route::get('/{transactionId:[0-9]+}', [TransactionController::class, 'show']);
+    Route::get('/create', [TransactionController::class, 'create']);
+    Route::post('/', [TransactionController::class, 'store']);
+    Route::put('/{transaction}', [TransactionController::class, 'update']);
+    Route::delete('/{transaction}', [TransactionController::class, 'destroy']);
+});
+
+
+Route::get('/transactions/{transactionId}/process', ProcessTransactionController::class);
+
+
+Route::redirect('/home', '/dashboard');
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+COM ISSO, É CLARO,
+
+
+TIRAMOS A PARTE DE 'transactions',
+
+
+dentro de cada route,
+
+pq agora todas elas serão prefixadas automaticamente...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+MAS AGORA DEVEMOS VER SE CONSEGUIMOS AGRUPAR CONSIDERANDO O COMMON CONTROLLER 
+
+ENTRE ELAS...
+
+
+
+
+
+
+
+-> PARA ISSO,
+
+
+podemos usar o method 'Route::controller',
+
+diretamente na facade...
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+// * HOW TO GROUP ROUTES, CONSIDERING A COMMON PREFIX, AND CONSIDERING A COMMON CONTROLLER BETWEEN METHODS/routes:
+Route::prefix('/transactions')->group(function () {
+    Route::controller(TransactionController::class)->group(
+        function () {
+            Route::get('/',  'index');
+            Route::get('/{transactionId:[0-9]+}', 'show');
+            Route::get('/create', 'create');
+            Route::post('/',  'store');
+            Route::put('/{transaction}',  'update');
+            Route::delete('/{transaction}',  'destroy');
+        }
+    );
+});
+
+
+
+
+
+
+
+
+
+COMO VC PODE PERCEBER, PODEMOS NESTEAR ESSES GROUPINGS...
+
+
+
+
+
+
+
+e podemos groupar coisas ainda mais, caso necessário...
+
+
+
+
+
+PODEMOS CHECAR SE AS ROUTES ESTÃO FUNCIONANDO,
+
+POR MEIO DO COMANDO PHP ARTISAN DE route:list,
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+PS C:\Users\Usuario\Desktop\NOVAS AULAS LARAVEL\relearning-laravel\gio-example> php artisan route:list --except-vendor
+
+  GET|HEAD  / ...................................................................................... 
+  GET|HEAD  dashboard ..............................................................................  
+  GET|HEAD  files/{fileType} .......................................................................  
+  ANY       home ........................................... Illuminate\Routing › RedirectController  
+  GET|HEAD  report/{reportId:[0-9]+} ...............................................................  
+  GET|HEAD  report/{reportId} ......................................................................  
+  GET|HEAD  report/{year}/{month?} .................................................................  
+  GET|HEAD  transactions ............................................... TransactionController@index  
+  POST      transactions ............................................... TransactionController@store  
+  GET|HEAD  transactions/create ....................................... TransactionController@create  
+  GET|HEAD  transactions/{parameter1}/{parameter2} .................................................  
+  GET|HEAD  transactions/{transactionId:[0-9]+} ......................... TransactionController@show  
+  GET|HEAD  transactions/{transactionId} ...........................................................  
+  GET|HEAD  transactions/{transactionId}/process ...................... ProcessTransactionController  
+  PUT       transactions/{transaction} ................................ TransactionController@update  
+  DELETE    transactions/{transaction} ............................... TransactionController@destroy  
+  GET|HEAD  users ..................................................................................  
+
+                                                                                 Showing [17] routes
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+certo...
+
+
+
+
+
+
+
+
+
+PODEMOS NOMEAR NOSSAS ROUTES, SE QUISERMOS...
+
+
+
+
+
+
+
+
+-> ''NAMED ROUTES IS A CONVENIENT WAY 
+TO GENERATE URLS FOR YOUR ROUTES... IT CAN ALSO BE USED TO REDIRECT 
+USERS TO YOUR ROUTES __ WITHOUT BUILDING __ YOUR ROUTES MANUALLY''...
+
+
+
+
+
+--> PARA FAZER O NAME DE 1 ROUTE,
+
+DEVEMOS USAR O METHOD DE '->name()',
+
+
+em qualquer uma das routes...
+
+
+
+
+
+
+
+--> PARA FAZER ISSO NO METHOD DE INDEX,
+PODEMOS ESCREVER ASSIM:
+
+
+
+
+
+
+
+
+
+// * HOW TO GROUP ROUTES, CONSIDERING A COMMON PREFIX, AND CONSIDERING A COMMON CONTROLLER BETWEEN METHODS/routes:
+Route::prefix('/transactions')->group(function () {
+    Route::controller(TransactionController::class)->group(
+        function () {
+            Route::get('/',  'index')->name('transactions.home');
+            Route::get('/{transactionId:[0-9]+}', 'show')->name('transactions.show');
+            Route::get('/create', 'create')->name('transactions.create');
+            Route::post('/',  'store')->name('transactions.store');
+            Route::put('/{transaction}',  'update')->name('transactions.update');
+            Route::delete('/{transaction}',  'destroy')->name('transactions.destroy');
+        }
+    );
+});
+
+
+
+
+
+
+
+
+
+VC PODE COLOCAR QUALQUER NOME, DESDE QUE ELE SEJA UNIQUE...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+em 'TransactionController',
+
+PODEMOS USAR 1 DAS HELPER FUNCTIONS DO LARAVEL 
+
+
+PARA FAZER O GENERATE DA URL PARA NOSSA ROUTE...
+
+
+
+
+
+
+
+
+
+--> TIPO ASSIM:
+
+
+
+
+
+
+
+
+route('transactions') ----->  ISSO VAI RETORNAR 1 STRING,
+
+                                VAI RETORNAR A URL PARA ESSA ROUTE...
+
+                            
+
+                        
+
+                        TIPO ASSIM:
+
+
+
+
+
+
+
+
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Transaction;
+use Illuminate\Http\Request;
+
+class TransactionController extends Controller
+{
+    /**
+     * Display a listing of the resource.
+     */
+    public function index()
+    {
+        route('transactions.home'); // this will return the built url for the route 'transactions.home', in this case, 'localhost/transactions'
+
+        return view('transactions.index');
+    }
+
+    /**
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ok... 
+
+
+
+
+
+
+
+
+
+ISSO É LEGAL, MAS DIGAMOS QUE QUEREMOS OBTER A URL TAMBÉM COM 
+
+
+O 'id' incluído,
+
+com esse method de 'route()', como podemos fazer isso?
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> CERTO... SE TENTAMOS RODAR A MESMA COISA PARA 1 ROUTE COM 
+
+'transactionId',
+
+
+
+FICAREMOS COM 1 ERROR...
+
+
+
+
+
+
+
+
+
+--> PARA EVITAR ESSE ERROR, PRECISAMOS PASSAR 1 SEGUNDO PARAMETER A 
+
+
+
+'route()',
+
+
+
+QUE SERÁ JUSTAMENTE 1 ARRAY, QUE SERÁ UMA LISTA DOS PARAMETERS...
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+    /**
+     * Display a listing of the resource.
+     */
+    public function index()
+    {
+        echo route('transactions.home') . '<br />'; // this will return the built url for the route 'transactions.home', in this case, 'localhost/transactions'
+
+        echo route('transaction', ['transactionId' => 55]) . '<br />'; // this will return the built url for the route 'transactions.show', in this case, 'localhost/transactions/55'
+
+
+        return view('transactions.index');
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+EM VEZ DE USAR 'route()',
+
+
+podemos usar 
+
+
+
+'to_route()',
+
+
+PARA REDIRECIONAR O USER DIRETAMENTE A ESSA PAGE...
+
+
+
+
+
+
+
+
+
+ESSE METHOD 'returns the redirected response'...
+
+
+
+
+
+
+ex:
+
+
+
+
+
+
+
+    /**
+     * Display a listing of the resource.
+     */
+    public function index()
+    {
+       // echo route('transactions.home') . '<br />'; // this will return the built url for the route 'transactions.home', in this case, 'localhost/transactions'
+
+        //echo route('transaction', ['transactionId' => 55]) . '<br />'; // this will return the built url for the route 'transactions.show', in this case, 'localhost/transactions/55'
+
+        // * THIS WILL REDIRECT THE USER to the specified named route.
+        to_route('transactions.create'); // this will return the built url for the route 'transactions.home', in this case, 'localhost/transactions'
+
+        return view('transactions.index');
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+A FUNCTION de 'to_route()"
+
+É APENAS 1 SHORTCUT 
+
+
+
+PARA A FUNCTION DE 'redirect()'...
+
+
+
+
+
+
+PODERÍAMOS USAR 'redirect()' EM VEZ DE 'to_route()',
+
+
+que daria na mesma...
+
+
+
+
+
+
+
+
+
+
+OK... OS NOMES TEM QUE SER UNIQUE, NO CASO...
+
+
+
+
+
+
+
+
+
+
+QUANDO VC FICA COM MTAS ROUTES,
+
+
+COMEÇA A FICAR TRICKY TER NOMES TOTALMENTE UNIQUE...
+
+
+
+
+
+
+
+EX:
+
+
+
+
+Route::get('/{transactionId}/documents', 'documents' )->name('documents');
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK, MAS DIGAMOS QUE TEMOS OUTRA ROUTE,
+QUE FAZ 
+O RETURN DOS DOCUMENTS DO SISTEMA?
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+Route::get('/documents', [DocumentController::class, 'index'])->name('documents');
+Route::get('/{transactionId}/documents', 'documents' )->name('documents');
+
+
+
+
+
+
+
+
+
+ COM ISSO, FICAREMOS COM 2 ROUTES COM MESMO NOME,
+
+
+ O QUE É BEM RUIM...
+
+
+
+
+
+
+
+
+
+ SE TENTARMOS FAZER O GENERATE DE 1 ROUTE PARA O NOME DOCUMENTS,
+
+
+ COm 
+
+
+ 'route('documents')',
+
+
+
+
+ FICAMOS 
+
+
+COM ERRORS, POR CONTA DAQUELE CONFLITO...
+
+
+
+
+
+
+
+
+
+
+
+a solução mais simples a isso é simplesmente 
+
+
+
+PREFIXAR COM O NOME DO RESOURCE,
+
+tipo 
+
+
+'transactions.documents' 
+
+e 
+
+'documents',
+
+
+para diferenciar os 2...
+
+
+
+
+
+
+
+
+
+
+
+
+OK... 
+
+
+
+
+
+
+
+AGORA DIGAMOS QUE QUEREMOS PRFEFIXAR TODAS AS ROUTES DE DENTRO DE 
+
+
+'Route::prefix('transactions')'
+
+
+
+com o naming de 'transactions.', COMO FARÍAMOS ISSO?
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+INICIALMENTE, TEMOS ISTO:
+
+
+
+
+
+
+
+
+// * HOW TO GROUP ROUTES, CONSIDERING A COMMON PREFIX, AND CONSIDERING A COMMON CONTROLLER BETWEEN METHODS/routes:
+Route::prefix('/transactions')->group(function () {
+    Route::controller(TransactionController::class)->group(
+        function () {
+            Route::get('/',  'index')->name('transactions.home');
+            Route::get('/{transactionId:[0-9]+}', 'show')->name('transactions.show');
+            Route::get('/create', 'create')->name('transactions.create');
+            Route::post('/',  'store')->name('transactions.store');
+            Route::put('/{transaction}',  'update')->name('transactions.update');
+            Route::delete('/{transaction}',  'destroy')->name('transactions.destroy');
+        }
+    );
+});
+
+
+
+
+
+
+
+
+
+
+PARA DEIXAR MAIS ABREVIADO, BASTA USAR 
+
+
+'Route::name('transactions')->group()',
+
+
+
+E AÍ AGRUPAR TUDO,
+
+TIPO ASSIM:
+
+
+
+
+
+// * SAME THING AS ABOVE, BUT WITH GROUPING/ASSIGNING NAME PREFIX TO THE ROUTES:
+Route::prefix('/transactions')->group(function () {
+    Route::controller(TransactionController::class)->group(
+        Route::name('transactions.')->group(
+            function () {
+                Route::get('/',  'index')->name('home');
+                Route::get('/{transactionId:[0-9]+}', 'show')->name('show');
+                Route::get('/create', 'create')->name('create');
+                Route::post('/',  'store')->name('store');
+                Route::put('/{transaction}',  'update')->name('update');
+                Route::delete('/{transaction}',  'destroy')->name('destroy');
+            }
+        )
+    );
+});
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+FICOU BEM MAIS CLEAN...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+MAS E QUANTO AO SPLIT DE SUAS ROUTES EM DIFERENTES FILES?
+
+
+
+
+
+
+
+
+
+
+
+--> DIGAMOS QUE QUEREMOS COLOCAR AS ROUTES DE 'transactions'
+
+EM 1 FILE PRÓPRIA... COMO FARÍAMOS ISSO?
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> BASTA EXTRAIR ESSAS ROUTES, EM FILES SEPARADAS...
+
+
+
+
+
+
+--> PEGAMOS TODAS AS TRANSACTION-RELATED ROUTES:
+
+
+
+
+
+
+
+
+
+// * SAME THING AS ABOVE, BUT WITH GROUPING/ASSIGNING NAME PREFIX TO THE ROUTES:
+Route::prefix('/transactions')->group(function () {
+    Route::controller(TransactionController::class)->group(
+        Route::name('transactions.')->group(
+            function () {
+                Route::get('/',  'index')->name('home');
+                Route::get('/{transactionId:[0-9]+}', 'show')->name('show');
+                Route::get('/create', 'create')->name('create');
+                Route::post('/',  'store')->name('store');
+                Route::put('/{transaction}',  'update')->name('update');
+                Route::delete('/{transaction}',  'destroy')->name('destroy');
+            }
+        )
+    );
+});
+
+
+
+
+
+
+
+
+
+
+-> aí criamos 1 novo arquivo de routes, de nome transactions.php'...
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+use App\Http\Controllers\TransactionController;
+use Illuminate\Support\Facades\Route;
+
+Route::prefix('/transactions')->group(function () {
+    Route::controller(TransactionController::class)->group(
+        Route::name('transactions.')->group(
+            function () {
+                Route::get('/',  'index')->name('home');
+                Route::get('/{transactionId:[0-9]+}', 'show')->name('show');
+                Route::get('/create', 'create')->name('create');
+                Route::post('/',  'store')->name('store');
+                Route::put('/{transaction}',  'update')->name('update');
+                Route::delete('/{transaction}',  'destroy')->name('destroy');
+            }
+        )
+    );
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO, MAS COMO REGISTRAMOS E ADICIONAMOS ESSA FILE DE 'transactions.php',
+
+COM AS ROUTES ADICIONAIS,
+
+
+LÁ NO ARQUIVO 'web.php'?
+
+
+
+
+
+
+PARA FAZER ISSO, PRECISAMOS ABRIR O ARQUIVO 'app.php',
+
+LÁ DO FOLDER DE 'bootstrap',
+
+
+
+E AÍ TEMOS ESTA LÓGICA:
+
+
+
+
+
+
+
+
+
+<?php
+
+use Illuminate\Foundation\Application;
+use Illuminate\Foundation\Configuration\Exceptions;
+use Illuminate\Foundation\Configuration\Middleware;
+
+return Application::configure(basePath: dirname(__DIR__))
+    ->withRouting(
+        web: __DIR__.'/../routes/web.php',
+        commands: __DIR__.'/../routes/console.php',
+        health: '/up',
+    )
+    ->withMiddleware(function (Middleware $middleware) {
+        //
+    })
+    ->withExceptions(function (Exceptions $exceptions) {
+        //
+    })->create();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+COMO VC PODE PERCEBER, EXISTE O METHOD DE 'withRouting()'...
+
+
+
+
+
+
+
+ESSE METHOD ACEITA 1 OUTRO ARGUMENT,
+
+
+CHAMADO DE 'then',
+
+
+EM QUE PODEMOS PASSAR 1 CLOSURE,
+
+E AÍ REGISTRAR ROUTES ADICIONAIS, DENTRO DELE...
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+<?php
+
+use Illuminate\Foundation\Application;
+use Illuminate\Foundation\Configuration\Exceptions;
+use Illuminate\Foundation\Configuration\Middleware;
+
+return Application::configure(basePath: dirname(__DIR__))
+    ->withRouting(
+        web: __DIR__ . '/../routes/web.php',
+        commands: __DIR__ . '/../routes/console.php',
+        health: '/up',
+        // * THIS IS HOW WE CAN ADD ADDITIONAL ROUTES, WITHOUT CLOGGING 'web.php'...
+        then: function () {}
+    )
+    ->withMiddleware(function (Middleware $middleware) {
+        //
+    })
+    ->withExceptions(function (Exceptions $exceptions) {
+        //
+    })->create();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+MAS PRECISAMOS 
+
+
+ESCREVER MAIS...
+
+
+
+
+
+
+basicamente, escrecvemos assim:
+
+
+
+
+<?php
+
+use Illuminate\Foundation\Application;
+use Illuminate\Foundation\Configuration\Exceptions;
+use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Support\Facades\Route;
+
+return Application::configure(basePath: dirname(__DIR__))
+    ->withRouting(
+        web: __DIR__ . '/../routes/web.php',
+        commands: __DIR__ . '/../routes/console.php',
+        health: '/up',
+        // * THIS IS HOW WE CAN ADD ADDITIONAL ROUTES, WITHOUT CLOGGING 'web.php'...
+        then: function () {
+            Route::prefix('transactions')
+                ->name('transactions.')
+                ->group(base_path('routes/transactions.php'));
+        }
+    )
+    ->withMiddleware(function (Middleware $middleware) {
+        //
+    })
+    ->withExceptions(function (Exceptions $exceptions) {
+        //
+    })->create();
+
+
+
+
+
+
+
+
+
+
+
+
+
+COM ISSO, COM 'base_path()',
+
+
+essa helper function,
+
+
+
+
+ACABAMOS GERANDO O 'FULLY QUALIFIED PATH' TO THE 
+GIVEN FILE...
+
+
+
+
+
+
+--> certo... quer dizer que basicamente passamos o  path 
+
+em que 
+
+TEMOS AS NOSSAS ROUTES ADICIONAIS, de 'transactions'...
+
+
+
+
+
+
+
+
+-> COM ISSO, NOSSAS ROUTES FICARÃO PROPERLY NAMED E GROUPED...
+
+
+
+
+
+
+
+
+
+
+
+-> MAS QUÃO DEEP DEVEM SER NOSSOS GROUPINGS?
+
+
+
+
+
+
+-_> A SUGESTÃO DO PROFESSOR É 'NÃO EXAGERAR'...
+
+
+
+
+
+
+
+--> NÃO DEVEMOS FICAR MT LOUCOS COM NAMING E PREFIXING...
+
+
+    PODE ACABAR DEIXANDO O CÓDIGO MAIS 
+    DIFÍCIL DE ENTENDER... E AÍ VC VAI PRECISAR
+    USAR O 
+
+    php artisan route:list 
+
+
+    PARA ENTENDER AS COISAS...
+
+
+
+
+
+
+
+    O PROFESSOR GERALMENTE NÃO 
+    CRIA NOVOS ARQUIVOS DE ROUTE, A NÃO SER QUE 
+
+    O ARQUIVO 'web.php'
+
+    CRESCA MT... ELE TAMBÉM TENTA EVITAR 
+
+    TER MAIS DO QUE 1 OR 2 LEVELS OF NESTING... (a não ser que o professor esteja agrupando routes com middlewares, como vermeos no próximo vídeo)...
+
+
+
+    

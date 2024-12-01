@@ -103,12 +103,55 @@ Route::get('/files/{fileType}', function (Request $request, FileType $fileType) 
 
 
 // TRANSACTIONS ON CONTROLLERS:
-Route::get('/transactions', [TransactionController::class, 'index']);
-Route::get('/transactions/{transactionId:[0-9]+}', [TransactionController::class, 'show']); // without using ROUTE MODEL BINDING.
-Route::get('/transactions/create', [TransactionController::class, 'create']);
-Route::post('/transactions', [TransactionController::class, 'store']);
-Route::put('/transactions/{transaction}', [TransactionController::class, 'update']);
-Route::delete('/transactions/{transaction}', [TransactionController::class, 'destroy']);
+// Route::get('/transactions', [TransactionController::class, 'index']);
+// Route::get('/transactions/{transactionId:[0-9]+}', [TransactionController::class, 'show']); // without using ROUTE MODEL BINDING.
+// Route::get('/transactions/create', [TransactionController::class, 'create']);
+// Route::post('/transactions', [TransactionController::class, 'store']);
+// Route::put('/transactions/{transaction}', [TransactionController::class, 'update']);
+// Route::delete('/transactions/{transaction}', [TransactionController::class, 'destroy']);
+
+// * HOW TO GROUP ROUTES, CONSIDERING A COMMON PREFIX:
+// Route::prefix('/transactions')->group(function () {
+
+//     Route::get('/', [TransactionController::class, 'index']);
+//     Route::get('/{transactionId:[0-9]+}', [TransactionController::class, 'show']);
+//     Route::get('/create', [TransactionController::class, 'create']);
+//     Route::post('/', [TransactionController::class, 'store']);
+//     Route::put('/{transaction}', [TransactionController::class, 'update']);
+//     Route::delete('/{transaction}', [TransactionController::class, 'destroy']);
+// });
+
+
+// * HOW TO GROUP ROUTES, CONSIDERING A COMMON PREFIX, AND CONSIDERING A COMMON CONTROLLER BETWEEN METHODS/routes:
+// Route::prefix('/transactions')->group(function () {
+//     Route::controller(TransactionController::class)->group(
+//         function () {
+//             Route::get('/',  'index')->name('transactions.home');
+//             Route::get('/{transactionId:[0-9]+}', 'show')->name('transactions.show');
+//             Route::get('/create', 'create')->name('transactions.create');
+//             Route::post('/',  'store')->name('transactions.store');
+//             Route::put('/{transaction}',  'update')->name('transactions.update');
+//             Route::delete('/{transaction}',  'destroy')->name('transactions.destroy');
+//         }
+//     );
+// });
+
+// * SAME THING AS ABOVE, BUT WITH GROUPING/ASSIGNING NAME PREFIX TO THE ROUTES:
+Route::prefix('/transactions')->group(function () {
+    Route::controller(TransactionController::class)->group(
+        Route::name('transactions.')->group(
+            function () {
+                Route::get('/',  'index')->name('home');
+                Route::get('/{transactionId:[0-9]+}', 'show')->name('show');
+                Route::get('/create', 'create')->name('create');
+                Route::post('/',  'store')->name('store');
+                Route::put('/{transaction}',  'update')->name('update');
+                Route::delete('/{transaction}',  'destroy')->name('destroy');
+            }
+        )
+    );
+});
+
 
 
 Route::get('/transactions/{transactionId}/process', ProcessTransactionController::class);
