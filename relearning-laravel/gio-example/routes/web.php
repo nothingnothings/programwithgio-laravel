@@ -1,7 +1,10 @@
 <?php
+
 declare(strict_types=1);
 
 use App\Enums\FileType;
+use App\Http\Controllers\ProcessTransactionController;
+use App\Http\Controllers\TransactionController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -78,7 +81,7 @@ Route::get('/report/{reportId}', function (Request $request, int $reportId) {
 Route::get('/report/{reportId}', function (Request $request, int $reportId) {
     return "generting report $reportId";
 })->where(
-    (['transactionId' => '[0-9]+', 'year' => '[0-9]+'] )
+    (['transactionId' => '[0-9]+', 'year' => '[0-9]+'])
 );
 
 // Same thing as the route above, but with 'whereNumber' instead of 'where':
@@ -99,5 +102,16 @@ Route::get('/files/{fileType}', function (Request $request, FileType $fileType) 
 });
 
 
-Route::redirect('/home', '/dashboard');
+// TRANSACTIONS ON CONTROLLERS:
+Route::get('/transactions', [TransactionController::class, 'index']);
+Route::get('/transactions/{transactionId:[0-9]+}', [TransactionController::class, 'show']); // without using ROUTE MODEL BINDING.
+Route::get('/transactions/create', [TransactionController::class, 'create']);
+Route::post('/transactions', [TransactionController::class, 'store']);
+Route::put('/transactions/{transaction}', [TransactionController::class, 'update']);
+Route::delete('/transactions/{transaction}', [TransactionController::class, 'destroy']);
 
+
+Route::get('/transactions/{transactionId}/process', ProcessTransactionController::class);
+
+
+Route::redirect('/home', '/dashboard');

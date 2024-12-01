@@ -1,0 +1,1537 @@
+
+
+
+
+
+ATÉ AGORA SEMPRE DEFINIMOS NOSSAS ROUTES POR MEIO DE CLOSURES, DIRETAMENTE 
+
+
+NO ARQUIVO DE 'web.php'...
+
+
+
+
+
+
+
+--> ISSO É ADEQUADO QUANDO VC ESTÁ STARTING OUT,
+
+OU COM 1 PROJETO PEQUENO...
+
+
+
+
+
+
+
+
+
+
+
+
+-----> MAS É CLARO QUE ISSO FICA RAPIDAMENTE CUMBERSOME QUANDO 
+        SEU APP AUMENTA...
+
+
+
+
+
+
+
+
+-> O PRINCIPAL JOB 
+
+    DO ARQUIVO 'web.php'
+
+
+    É DIRECIONAR 
+
+
+    REQUESTS àS ACTIONS APROPRIADAS,
+
+    E NÃO FICAR 'BOGGED DOWN' 
+
+    PELOS DETALHES NITTY GRITTY DE CADA ACTION...
+
+
+
+
+
+
+
+
+
+
+
+--> É POR ISSO QUE TEMOS CONTROLLERS...
+
+
+
+
+
+
+
+
+
+
+
+CONTROLLER --> É COMO UM CHEF...
+
+
+
+
+
+
+
+
+
+
+--> QUANDO  1 USER FAZ 1 ORDER/REQUEST,
+
+    O CHEF FAZ VALIDATE DO REQUEST,
+
+    GARANTINDO 
+
+
+    QUE OS REQUIREMENTES PROVIDENCIADOS PELO USER SÃO VÁLIDOS,
+
+    PARA AÍ COMEÇAR A PREPARAR A ORDER...
+
+
+
+
+
+
+
+
+--> O CHEF SABE QUAIS INGREDIENTES SÃO NECESSÁRIOS E COMO 
+TRABALHAR COM ELES (services, models),
+
+
+E OS UTILIZA PARA CRIAR A DISH (a response)...
+
+
+
+
+
+
+
+
+OS INGREDIENTES SÃO BASICAMENTE A DATA DOS MODELS E DE OUTROS SERVICES...
+
+ISSO TUDO PRESSUPÕE CONEXÃO COM OUTRAS APIs externas e services, para então 
+
+realizar tasks específicas...
+
+
+
+
+
+
+
+
+
+-> É POR ISSO QUE, EM VEZ DE JOGAR TODA SUA LÓGICA DENTRO  
+
+
+DAS CLOSURES DO SEU ARQUIVO 'web.php',
+
+
+
+
+UMA IDEIA É MT MELHOR DEIXAR ESSA LÓGICA DENTRO DE CONTROLLER CLASSES...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> DIGAMOS QUE TEMOS 4 ROUTES DEDICADAS A TRANSACTIONS....
+SÃO ELAS:
+
+
+
+
+
+
+1) OPEN THE TRANSACTIONS PAGE (index)
+
+
+2) VIEW THE DETAILS OF A GIVEN TRANSACTION (show)
+
+
+3) SHOW A FORM TO CREATE A NEW TRANSACTION (create)
+
+
+
+4) POST ROUTE, TO ACTUALLY CREATE A TRANSACTION (store)...
+
+
+
+
+
+
+
+
+  
+
+
+
+
+--> É CLARO QUE CADA ROUTE VAI TER BASTANTE COISAS DIFERENTES...
+
+
+
+
+
+
+
+
+
+
+
+QUEREMOS MOVER TODAS ESSAS ACTIONS FORA DO ARQUIVO DE 'web.php',
+
+E PARA DENTRO DOS CONTROLLERS...
+
+
+
+
+
+
+
+
+-> PODEMOS CRIAR 1 CONTROLLER COM A AJUDA DO artisan,
+
+
+com 
+
+
+
+php artisan make:controller <name_of_the_controller>
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+PS C:\Users\Usuario\Desktop\NOVAS AULAS LARAVEL\relearning-laravel\gio-example> php artisan make:controller transactionController
+
+   INFO  Controller [C:\Users\Usuario\Desktop\NOVAS AULAS LARAVEL\relearning-laravel\gio-example\app\Http\Controllers\transactionController.php] created successfully. 
+
+
+
+
+
+
+
+
+
+
+   CERTO...
+
+
+   ISSO GEROU 1 CONTROLLER:
+
+
+
+
+
+
+
+
+
+
+
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Transaction;
+use Illuminate\Http\Request;
+
+class TransactionController extends Controller
+{
+    /**
+     * Display a listing of the resource.
+     */
+    public function index()
+    {
+        //
+    }
+
+    /**
+     * Show the form for creating a new resource.
+     */
+    public function create()
+    {
+        //
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     */
+    public function store(Request $request)
+    {
+        //
+    }
+
+    /**
+     * Display the specified resource.
+     */
+    public function show(Transaction $transaction)
+    {
+        //
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     */
+    public function edit(Transaction $transaction)
+    {
+        //
+    }
+
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(Request $request, Transaction $transaction)
+    {
+        //
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(Transaction $transaction)
+    {
+        //
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+
+SE FAÇO ASSIM,
+
+ELE JÁ CRIA 1 MODEL PARA NÓS,
+
+
+
+
+DE TIPO 'Transaction'...
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class Transaction extends Model
+{
+    //
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+a convention do laravel é usar 'TransactionController' em vez de 
+
+'TransactionsController'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> DENTRO DISSO, TEMOS NOSSOS MÚLTIPLOS METHODS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> MAS A QUESTÃO É QUE O CONTROLLER ESTÁ FAZENDO EXTEND DA CLASS DE 'Controller'...
+
+
+
+
+
+
+
+-> O EXTEND DA CLASS DE 'Controller' é totalmente opcional,
+    ele existe caso vc queira definir alguma funcionalidade, a ser extendida 
+    a todos seus outros controllers, de seu app...
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+<?php
+
+namespace App\Http\Controllers;
+
+abstract class Controller
+{
+    //
+}
+
+
+
+
+
+
+
+
+
+
+
+
+COMO VC PODE VER, O BASE CONTROLLER 
+
+
+É SÓ 1 CLASS ABSTRATA...
+
+
+
+
+
+
+
+
+-> O PROFESSOR TENTA EVITAR INHERITANCE PARA CODE REUSE,
+
+ELE ACHA QUE ELA NÃO DEVE SER USADA ASSIM... O PROFESSOR PREFERE USAR 
+DEPENDENCY INJECTION PARA CODE REUSE...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> O BASE CONTROLLER ERA MAIS ÚTIL 
+    NO LARAVEL 10... ELE TINHA ALGUNS 
+    TRAITS 
+
+    LÁ, QUE PROVICENCIAVAM HELPER METHODS QUE 
+    VC 
+    PODIA USAR NOS SEUS CONTROLLERS...
+
+
+
+    MAS ISSO FOI SLIMMED DOWN, NO LARAVEL 11,
+
+    APESAR DE VC TER A OPÇÃO DE ADICIONÁ-LOS DE VOLTA,
+     SE QUISER...
+
+
+
+
+
+
+
+
+--> MAS O PROFESSOR NÃO USA O BASE CONTROLLER, POR ISSO ELE SEMPRE REMOVE-O 
+DOS PROJETOS DELE...
+
+
+
+
+
+
+
+--> O PROFESSOR ESCREVE 1 METHOD PARA O RETURN DA PAGE DE 'transactions',
+
+tipo assim:
+
+
+
+
+
+class TransactionController extends Controller
+{
+    /**
+     * Display a listing of the resource.
+     */
+    public function index()
+    {
+        return view('transactions.index');
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+COM ISSO,
+
+SERÁ RETORNADA A PAGE DE 'index',
+
+
+dentro do folder de 'transactions',
+
+
+no resource>views...
+
+
+
+
+
+
+
+
+
+
+
+
+PODEMOS ESCREVER TIPO ALGO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+@extends('layouts.app')
+
+@section('content')
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">Transactions</div>
+
+                <div class="card-body">
+                    @if (session('status'))
+                        <div class="alert alert-success" role="alert">
+                            {{ session('status') }}
+                        </div>
+                    @endif
+
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Name</th>
+                                    <th>Amount</th>
+                                    <th>Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach ($transactions as $transaction)
+                                    <tr>
+                                        <td>{{ $transaction->id }}</td>
+                                        <td>{{ $transaction->name }}</td>
+                                        <td>{{ $transaction->amount }}</td>
+                                        <td>{{ $transaction->date }}</td>
+                                        <td>
+                                            <a href="{{ route('transactions.show', $transaction->id) }}" class="btn btn-primary">Show</a>
+                                            <a href="{{ route('transactions.edit', $transaction->id) }}" class="btn btn-primary">Edit</a>
+                                            <form method="POST" action="{{ route('transactions.destroy', $transaction->id) }}">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="btn btn-primary">Delete</button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@endsection
+
+
+
+
+
+
+
+
+
+
+
+
+
+PARA CONECTAR ISSO, LÁ EM web.php,
+
+ESCREVEMOS ASSIM:
+
+
+
+
+// TRANSACTIONS ON CONTROLLERS:
+Route::get('/transactions', [TransactionController::class, 'index']);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+O PROFESSOR CRIA UM METHOD PARA SHOW, TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+// TRANSACTIONS ON CONTROLLERS:
+Route::get('/transactions', [TransactionController::class, 'index']);
+Route::get('/transactions/{transactionId}', [TransactionController::class, 'show']);
+Route::get('/transactions/create', [TransactionController::class, 'create']);
+Route::post('/transactions', [TransactionController::class, 'store']);
+Route::put('/transactions/{transaction}', [TransactionController::class, 'update']);
+Route::delete('/transactions/{transaction}', [TransactionController::class, 'destroy']);
+
+
+
+
+
+
+
+
+
+certo...
+
+
+
+
+
+
+
+
+
+E O CONTROLLER FICOU ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Transaction;
+use Illuminate\Http\Request;
+
+class TransactionController extends Controller
+{
+    /**
+     * Display a listing of the resource.
+     */
+    public function index()
+    {
+        return view('transactions.index');
+    }
+
+    /**
+     * Display the specified resource.
+     */
+    public function show(string $transactionId): string
+    {
+        return 'Transaction ' . $transactionId;
+    }
+
+    // public function show(Transaction $transaction)
+    // {
+    //     return 'Transaction ' . $transaction->id;
+    // }
+
+    /**
+     * Show the form for creating a new resource.
+     */
+    public function create(): string
+    {
+        return 'Form to create a transaction';
+    }
+
+
+    /**
+     * Store a newly created resource in storage.
+     */
+    public function store(Request $request): string
+    {
+        return 'Transaction Created';
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     */
+    public function edit(Transaction $transaction)
+    {
+        //
+    }
+
+
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(Request $request, Transaction $transaction)
+    {
+        //
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(Transaction $transaction)
+    {
+        //
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+E ALÉM DE PODER INJETAR AS DEPENDENCIES DENTRO DO METHOD,
+
+
+VC PODE TAMBÉM 
+
+INJETAR AS DEPENDENCIES DIRETAMENTE 
+
+
+NO CONSTRUCTOR 
+
+DO CONTROLLER...
+
+
+
+
+
+
+
+
+
+
+
+--> DIGAMOS QUE VC TEM ALGUMA SERVICE CLASS,
+
+
+TIPO 
+
+
+UMA 
+
+
+''TransactionService''
+
+
+ou 
+
+
+''InvoiceService'',
+
+
+
+
+que VC GOSTARIA DE USAR EM MÚLTIPLOS METHODS NO INTERIOR DO SEU 'TransactionController'...
+
+
+
+
+
+
+
+
+--> bem, nesses casos,
+
+vc poderia INJETAR OS SERVICES 
+
+
+NO CONSTRUCTOR 
+
+
+DA CLASS, E AÍ 
+
+
+FAZER O DEFINE 
+
+DESSE SERVICE COMO 1 PROPERTY DO CONTROLLER,
+
+E ENTÃO ACESSAR ESSE SERVICE EM QUAISQUER METHODS DESSE CONTROLLER...
+
+
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR RECOMENDA INJETAR AS DEPENDENCIES NOS CONSTRUCTORS SEMPRE,
+
+    MAS 
+
+    O PROFESSOR TAMBÉM RECOMENDA 
+
+    QUE VC FAÇA O INJECT DE DEPENDENCIES COMO 'Request' DIRETAMENTE NAS ACTIONS/METHODS DO CONTROLLER,
+
+    ISSO PQ NÃO FAZ 
+
+    SENTIDO TER 'Request' INJETADO NO CONSTRUCTOR DE 1 CONTROLLER 
+
+
+    EM QUE VC NAO VAI QUERER USAR O 'Request' em todos os methods dele....
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+É POR ISSO QUE, TIPICAMENTE,  VC INJETA 
+
+AS CLASSES 'REQUEST' E 'RESPONSE' DIRETAMENTE DENTRO DOS CONTROLLER METHODS,
+
+
+
+E AÍ INJETA OUTRAS DEPENDENCIES, COMO SERVICES, DIRETAMENTE NO CONSTRUCTOR...
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+O PROFESSOR ENTÃO EXPLICA A RAZÃO DO NAMING DOS METHODS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+ESTAMOS USANDO 'index', 'show',
+
+'create' 
+
+
+'store' e etc...
+
+
+
+
+
+
+
+
+
+--> BASICAMENTE, ESTAMOS SEGUINDO A CRUD NAMING CONVENTION, AQUI...
+
+
+
+
+
+
+
+
+
+
+O PROFESSOR MOSTRA, ENTÃO,  CONFLITO ENTRE ROUTES:
+
+
+
+
+
+
+
+// TRANSACTIONS ON CONTROLLERS:
+Route::get('/transactions', [TransactionController::class, 'index']);
+Route::get('/transactions/{transactionId}', [TransactionController::class, 'show']); // without using ROUTE MODEL BINDING.
+Route::get('/transactions/create', [TransactionController::class, 'create']);
+Route::post('/transactions', [TransactionController::class, 'store']);
+Route::put('/transactions/{transaction}', [TransactionController::class, 'update']);
+Route::delete('/transactions/{transaction}', [TransactionController::class, 'destroy']);
+
+
+
+
+
+
+
+
+
+
+
+ISSO ESTÁ ACONTECENDO DEVIDO A ESSAS 2 ROUTES:
+
+
+
+
+// TRANSACTIONS ON CONTROLLERS:
+Route::get('/transactions', [TransactionController::class, 'index']);
+Route::get('/transactions/{transactionId}', [TransactionController::class, 'show']); // without using ROUTE MODEL BINDING.
+Route::get('/transactions/create', [TransactionController::class, 'create']);
+
+
+
+
+
+
+
+
+
+
+BASICAMENTE, A ROUTE DE 'transactionId' 
+
+ESTÁ FAZENDO ___ OVERWRITE__ da route de 'create' (mesmo slug)...
+
+
+
+
+
+É POR ISSO QUE DEVEMOS COLOCAR UMA CONSTRAINT PARA DEFINIR QUE 
+
+
+
+''transactionId must be ONLY NUMERIC''....
+
+
+
+
+
+--> É POR ISSO QUE ESCREVEMOS ASSIM:
+
+
+
+
+
+
+// TRANSACTIONS ON CONTROLLERS:
+Route::get('/transactions', [TransactionController::class, 'index']);
+Route::get('/transactions/{transactionId:[0-9]+}', [TransactionController::class, 'show']); // without using ROUTE MODEL BINDING.
+Route::get('/transactions/create', [TransactionController::class, 'create']);
+Route::post('/transactions', [TransactionController::class, 'store']);
+Route::put('/transactions/{transaction}', [TransactionController::class, 'update']);
+Route::delete('/transactions/{transaction}', [TransactionController::class, 'destroy']);
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+a outra solução a isso é mover 'create' mais para cima,
+
+antes da parte de '{transactionId}'...
+
+
+
+
+
+
+eX:
+
+Route::get('/transactions/create', [TransactionController::class, 'create']);
+Route::get('/transactions/{transactionId:[0-9]+}', [TransactionController::class, 'show']); // without using ROUTE MODEL BINDING.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> àS VEZES VC TERÁ CONTROLLERS QUE TERÃO 
+
+
+    1 ÚNICA ACTION... SINGLE ACTION CONTROLLERS...
+
+
+
+
+
+
+
+--> ELES POSSUEM APENAS 1 ÚNICA RESPONSABILIDADE...
+
+
+    SÃO BONS PARA DEIXAR CONTROLLERS STRAIGHTFORWARD....
+
+
+
+
+
+
+
+--> SINGLE ACTION METHOD, QUE É ROTEADO ATRAVÉS DO ROUTER..
+
+
+
+
+
+
+
+--> 1 ÚNICO METHOD FICA ROTEADO, NESSES CONTROLLERS... 
+
+
+É O METHOD  DE '__invoke',
+
+um dos magic methods do php...
+
+
+
+
+
+
+
+--> O METHOD DE '__invoke' vai ser executado sempre que 
+
+esse controller for invocado...
+
+
+
+
+
+
+
+
+
+--> QUEREMOS CRIAR 1 CONTROLLER PRÓPRIO PARA ISSO,
+PARA PROCESS TRANSACTION...
+
+
+
+
+tipo assim:
+
+
+
+
+PS C:\Users\Usuario\Desktop\NOVAS AULAS LARAVEL\relearning-laravel\gio-example> php artisan make:controller       
+
+  What should the controller be named?
+❯ ProcessTransaction
+
+  Which type of controller would you like?
+  Empty .................................................................................................. empty  
+  Resource ............................................................................................ resource  
+  Singleton .......................................................................................... singleton  
+  API ...................................................................................................... api  
+  Invokable .......................................................................................... invokable  
+❯ invokable
+
+   INFO  Controller [C:\Users\Usuario\Desktop\NOVAS AULAS LARAVEL\relearning-laravel\gio-example\app\Http\Controllers\ProcessTransaction.php] created successfully.  
+
+PS C:\Users\Usuario\Desktop\NOVAS AULAS LARAVEL\relearning-laravel\gio-example
+
+
+
+
+
+
+
+
+
+
+
+
+DEIXAMOS 'invokable' como o tipo do controller, para que ele seja single action...
+
+
+
+
+
+
+
+
+
+
+
+
+--> ISSO VAI CRIAR O CONTROLLER COM O PHP MAGIC METHOD, '__invoke'...
+
+
+
+
+
+
+
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+
+class ProcessTransaction extends Controller
+{
+    /**
+     * Handle the incoming request.
+     */
+    public function __invoke(Request $request)
+    {
+        //
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+GERALMENTE SINGLE ACTION CONTROLLERS SERÃO DE TIPO 'POST', 
+
+E NÃO 'GET',
+
+MAS AQUI VAMOS USAR 'GET',
+
+PARA DEMONSTRAR...
+
+
+
+
+E PODEMOS ROTEAR PARA ESSE CONTROLLER,
+
+
+BASTA INVOCAR O CONTROLLER,
+
+TIPO ASSIM:
+
+
+
+
+
+// TRANSACTIONS ON CONTROLLERS:
+Route::get('/transactions', [TransactionController::class, 'index']);
+Route::get('/transactions/{transactionId:[0-9]+}', [TransactionController::class, 'show']); // without using ROUTE MODEL BINDING.
+Route::get('/transactions/create', [TransactionController::class, 'create']);
+Route::post('/transactions', [TransactionController::class, 'store']);
+Route::put('/transactions/{transaction}', [TransactionController::class, 'update']);
+Route::delete('/transactions/{transaction}', [TransactionController::class, 'destroy']);
+
+
+Route::get('/transactions/{transactionId}/process', ProcessTransactionController::class);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+BASTA CHAMAR ISSO SIMPLESMENTE, QUE ISSO VAI FUNCIONAR...
+
+
+
+
+
+
+
+
+
+
+
+DEIXAMOS 1 LÓGICA DE RETURN STRING NO __invoke, tipo assim:
+
+
+
+
+
+
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+
+class ProcessTransactionController extends Controller
+{
+    /**
+     * Handle the incoming request.
+     */
+    public function __invoke(Request $request, string $transactionId)
+    {
+        return 'TransactionId: ' . $transactionId;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... AGORA DEVEMOS VER O SOURCE CODE DO LARAVEL,
+
+PARA ENTENDER A MANEIRA PELA QUAL 
+
+
+
+O CONTROLLER E OS METHODS ESTÃO SENDO DISPATCHED...
+
+
+
+
+
+
+
+
+
+ABRIMOS O 'Kernel.php'...
+
+
+
+
+
+
+
+--> LÁ TEMOS 
+
+
+
+
+'sendRequestThroughRouter()',
+
+
+
+
+
+aí temos a parte de 
+
+
+
+'$this->dispatchToRouter()'...
+
+
+
+
+
+
+
+
+
+
+
+--> aí 
+
+
+$this->dispatchToRoute()
+
+
+
+aí 
+
+
+
+
+$this->runRoute()
+
+
+
+
+
+
+
+
+
+
+--> aí, depois disso,
+
+
+
+
+
+$this->runRouteWithinStack()
+
+
+
+
+
+
+
+
+
+--> finalmente,
+
+
+
+
+
+$route->run()
+
+
+
+
+
+
+
+
+
+
+
+
+-> aí, dentro de 'run()',
+
+
+
+TEMOS A PARTE RELACIONADA AO CONTROLLER:
+
+
+
+
+
+
+
+
+if ($this->isControllerAction()) {
+    return $this->runController()
+}
+
+
+
+
+return $this->runCallable();
+
+
+
+
+
+
+
+
+
