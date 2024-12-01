@@ -10,14 +10,18 @@ class TransactionController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
+        echo $request->headers->get('X-Request-Id'); // this will return the value of the header 'X-Request-Id'
         echo route('transactions.home') . '<br />'; // this will return the built url for the route 'transactions.home', in this case, 'localhost/transactions'
 
         echo route('transaction', ['transactionId' => 55]) . '<br />'; // this will return the built url for the route 'transactions.show', in this case, 'localhost/transactions/55'
 
+
         // * THIS WILL REDIRECT THE USER to the specified named route.
         to_route('transactions.create'); // this will return the built url for the route 'transactions.home', in this case, 'localhost/transactions'
+
+
 
         return view('transactions.index');
     }

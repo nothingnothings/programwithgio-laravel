@@ -138,21 +138,20 @@ Route::get('/files/{fileType}', function (Request $request, FileType $fileType) 
 
 // * SAME THING AS ABOVE, BUT WITH GROUPING/ASSIGNING NAME PREFIX TO THE ROUTES:
 Route::prefix('/transactions')->group(function () {
-    Route::controller(TransactionController::class)->group(
-        Route::name('transactions.')->group(
-            function () {
-                Route::get('/',  'index')->name('home');
-                Route::get('/{transactionId:[0-9]+}', 'show')->name('show');
-                Route::get('/create', 'create')->name('create');
-                Route::post('/',  'store')->name('store');
-                Route::put('/{transaction}',  'update')->name('update');
-                Route::delete('/{transaction}',  'destroy')->name('destroy');
-            }
-        )
-    );
+    Route::name('transactions.')->controller(TransactionController::class)->group(function () {
+        Route::get('/', 'index')->name('home');
+        Route::get('/{transactionId:[0-9]+}', 'show')->name('show');
+        Route::get('/create', 'create')->name('create');
+        Route::post('/', 'store')->name('store');
+        Route::put('/{transaction}', 'update')->name('update');
+        Route::delete('/{transaction}', 'destroy')->name('destroy');
+    });
 });
 
-
+// Example of route-specific middleware (auth guards).
+Route::get('/administration', function () {
+    return 'Some Secret Admin Page';
+});
 
 Route::get('/transactions/{transactionId}/process', ProcessTransactionController::class);
 

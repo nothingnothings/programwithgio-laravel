@@ -1,0 +1,1982 @@
+
+
+
+
+
+
+<?php
+
+use Illuminate\Foundation\Application;
+use Illuminate\Foundation\Configuration\Exceptions;
+use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Support\Facades\Route;
+
+return Application::configure(basePath: dirname(__DIR__))
+    ->withRouting(
+        web: __DIR__ . '/../routes/web.php',
+        commands: __DIR__ . '/../routes/console.php',
+        health: '/up',
+        // * THIS IS HOW WE CAN ADD ADDITIONAL ROUTES, WITHOUT CLOGGING 'web.php'...
+        then: function () {
+            Route::prefix('transactions')
+                ->name('transactions.')
+                ->group(base_path('routes/transactions.php'));
+        }
+    )
+    ->withMiddleware(function (Middleware $middleware) {
+        //
+    })
+    ->withExceptions(function (Exceptions $exceptions) {
+        //
+    })->create();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+COMO VC PODE VER, DENTRO DE 'withMiddleware()',
+
+
+
+UMA CLOSURE ESTÁ SENDO PASSADA,
+
+
+E É EXATAMENTE NESSE LOCAL QUE 
+
+DEFINIREMOS 
+
+OS MIDDLEWARES A SEREM USADOS,
+
+OS CUSTOM MIDDLEWARES...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> ANTES DE DEFINIRMOS 1 CUSTOM MIDDLEWARE,
+
+DEVEMOS INSPECIONAR ESSE METHOD...
+
+
+
+
+
+
+
+
+
+--> OK... AGORA FALAREMOS SOBRE MIDDLEWARES...
+
+
+
+
+É UM CONCEITO BEM IMPORTANTE...
+
+
+
+
+
+
+ELE PODE PARECER COMPLEXO, MAS É BEM STRAIGHTFORWARD...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> PENSE NOS MIDDLEWARES COMO 1 SÉRIE DE FILTROS/LAYERS 
+
+
+QUE DEVEM SER ATRAVESSADOS, PELOS REQUESTS, ANTES DE 
+
+CHEGAR AO SEU APP....
+
+
+
+
+
+
+
+
+
+-> ELES TIPICAMENTE SÃO POSICIONADOS ENTRE OS REQUESTS E OS CONTROLLERS,
+
+PERMITINDO QUE VC:
+
+
+1) INSPECIONE 
+
+2) MODIFY 
+
+3) STOP 
+
+
+
+OS REQUESTS,
+
+
+COM BASE EM CRITÉRIOS ESPECÍFICOS...
+
+
+
+
+
+
+
+
+
+
+--> MTOS FRAMEWORKS, INCLUSIVE O LARAVEL,
+
+    POSSUEM SUPORTE A MIDDLEWARES OUT OF THE BOX..
+
+
+
+
+
+
+-> O LARAVEL JÁ TEM MIDDLEWARES APLICADOS POR DEFAULT,
+
+    QUE USA NOS SEUS REQUESTS,
+
+
+
+    E QUE ESTÃO 'HIDDEN' DE SEUS OLHOS...
+
+
+
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR QUER NOS MOSTRAR 
+
+    ALGUNS DELES, PARA QUE ENTENDAMOS COMO ISSO FUNCIONA...
+
+
+
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR TEM O CÓDIGO DE 'app.php',
+
+
+    EM QUE TEMOS O METHOD DE 'withMiddleware()':
+
+
+
+
+
+
+
+    /**
+     * Register the global middleware, middleware groups, and middleware aliases for the application.
+     *
+     * @param  callable|null  $callback
+     * @return $this
+     */
+    public function withMiddleware(?callable $callback = null)
+    {
+        $this->app->afterResolving(HttpKernel::class, function ($kernel) use ($callback) {
+            $middleware = (new Middleware)
+                ->redirectGuestsTo(fn () => route('login'));
+
+            if (! is_null($callback)) {
+                $callback($middleware);
+            }
+
+            $this->pageMiddleware = $middleware->getPageMiddleware();
+            $kernel->setGlobalMiddleware($middleware->getGlobalMiddleware());
+            $kernel->setMiddlewareGroups($middleware->getMiddlewareGroups());
+            $kernel->setMiddlewareAliases($middleware->getMiddlewareAliases());
+
+            if ($priorities = $middleware->getMiddlewarePriority()) {
+                $kernel->setMiddlewarePriority($priorities);
+            }
+
+            if ($priorityAppends = $middleware->getMiddlewarePriorityAppends()) {
+                foreach ($priorityAppends as $newMiddleware => $after) {
+                    $kernel->addToMiddlewarePriorityAfter($after, $newMiddleware);
+                }
+            }
+
+            if ($priorityPrepends = $middleware->getMiddlewarePriorityPrepends()) {
+                foreach ($priorityPrepends as $newMiddleware => $before) {
+                    $kernel->addToMiddlewarePriorityBefore($before, $newMiddleware);
+                }
+            }
+        });
+
+        return $this;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+QUER DIZER QUE O PROPÓSITO DESSE METHOD É:
+
+
+
+
+    /**
+     * Register the global middleware, middleware groups, and middleware aliases for the application.
+     *
+
+
+
+
+
+
+
+
+
+    
+COMO VC PODE VER,
+
+
+
+DEPOIS DO 'HttpKernel'
+
+ser 'resolved',
+
+
+
+
+O LARAVEL SETTA ALGUNS MIDDLEWARES...
+
+
+
+
+
+
+COM ESTA PARTE:
+
+
+
+
+
+
+            $this->pageMiddleware = $middleware->getPageMiddleware();
+            $kernel->setGlobalMiddleware($middleware->getGlobalMiddleware());
+            $kernel->setMiddlewareGroups($middleware->getMiddlewareGroups());
+            $kernel->setMiddlewareAliases($middleware->getMiddlewareAliases());
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+
+É BEM SIMPLES ENTENDER O QUE ESSE METHOD DE 'withMiddleware'
+
+
+faz:
+
+
+
+
+
+
+
+
+ELE REGISTRA OS GLOBAL MIDDLEWARES E MIDDLEWARE GROUPS...
+
+
+
+
+
+
+
+
+
+É CLARO QUE ESSE METHOD FAZ ALGUMAS OUTRAS COISAS,
+
+
+
+COMO 'redirectGuestsTo()'
+
+
+
+e algo com a 'priorities'... mas, mesmo assim,
+
+vc 
+
+
+pode entender o que esse method faz...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+EXPLICAÇÃO:
+
+
+
+''EM LARAVEL, VC É CAPAZ DE DEFINIR MIDDLEWARES GLOBALMENTE...
+    ISSO SIGNIFICA QUE TODO HTTP REQUEST QUE VAI POR DENTRO 
+    DE SEU APP 
+
+    VAI TER DE PASSAR POR SEUS MIDDLEWARES'...
+
+
+
+
+
+
+
+
+
+
+
+--> SE CLICAMOS EM 'getGlobalMiddleware',
+
+
+PODEMOS VER A LISTA DE GLOBAL MIDDLEWARES DEFAULT:
+
+
+
+
+
+        $middleware = $this->global ?: array_values(array_filter([
+            \Illuminate\Foundation\Http\Middleware\InvokeDeferredCallbacks::class,
+            $this->trustHosts ? \Illuminate\Http\Middleware\TrustHosts::class : null,
+            \Illuminate\Http\Middleware\TrustProxies::class,
+            \Illuminate\Http\Middleware\HandleCors::class,
+            \Illuminate\Foundation\Http\Middleware\PreventRequestsDuringMaintenance::class,
+            \Illuminate\Http\Middleware\ValidatePostSize::class,
+            \Illuminate\Foundation\Http\Middleware\TrimStrings::class,
+            \Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::class,
+        ]));
+
+
+
+
+
+
+
+
+CERTO... MAS O QUE SÃO?
+
+
+
+
+            \Illuminate\Foundation\Http\Middleware\PreventRequestsDuringMaintenance::class,
+
+
+
+
+
+
+
+-> ESSE IMPEDE REQUESTS DE ENTRAR NO APP,
+
+    QUANDO VC USA O COMMAND ARTISAN DE 'down'...
+
+
+
+
+
+--> TEMOS MIDDLEWARES, TAMBÉM, PARA:
+
+
+
+1) VALIDATE O TAMANHO DO POST REQUEST 
+
+
+
+2) TRIM STRINGS 
+
+
+
+E ETC...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... MAS COMO PODEMOS REGISTRAR NOVOS CUSTOM MIDDLEWARES,
+
+DE MODO QUE 
+
+ELES CONSIGAM FAZER PARTE DESSA LISTA DE MIDDLEWARES?
+
+
+
+
+
+
+
+
+
+
+a maneira mais recomendada é ler os docs na page do laravel...
+
+
+
+
+
+
+
+
+--> ENTRETANTO, PODEMOS APRENDER A FAZER ISSO SEM 
+
+    LER A DOCUMENTATION... SE VC LER O SOURCE CODE...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> SE INSPECIONAMOS OS METHOD CALLS DE 'getGlobalMiddleware()',
+
+
+temos 1 trecho assim:
+
+
+
+
+
+
+
+
+        return array_values(array_filter(
+            array_diff(
+                array_unique(array_merge($this->prepends, $middleware, $this->appends)),
+                $this->removals
+            )))
+
+
+
+
+
+
+    basicamente,
+
+
+
+    ELE SETTA OS MIDDLEWARES AQUI,
+
+    por meio de 'array_merge'...
+
+
+
+
+
+
+
+
+VC PERCEBE QUE ELE TEM 'prepends', 'middleware' e 'appends'...
+
+
+
+
+
+
+
+
+
+-> OU SEJA,
+ 
+
+ ESSA PARTE JÁ NOS DIZ QUE 
+
+
+
+ ''SE QUEREMOS ADICIONAR NOSSOS PRÓPRIOS MIDDLEWARES,
+
+ DEVEMOS ADICIONÁ-LOS   __ OU __ NA LIST DE PREPENDS,
+
+ OU NA LIST DE APPENDS'....
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> COMO O CÓDIGO DE 'Middleware.php'
+
+
+É DO PRÓPRIO 
+
+FRAMEWORK,
+
+NÃO PODEMOS FAZER ALTERAÇÕES A ELE...
+
+
+
+
+
+
+
+
+
+
+
+
+--> O LOCAL EM QUE PODEMOS FAZER MODIFICAÇÕES É 'app.php'...
+
+
+
+
+
+
+
+
+
+--> QUEREMOS ADICIONAR NOSSO MIDDLEWARE OU EM 'prepends'
+
+ou 'appends',
+
+
+para que sejam considerados junto dos middlewares que o laravel tem por default...
+
+
+
+
+
+
+
+
+SE CLICAMOS EM 'prepends',
+
+
+
+percebemos que é uma PROTECTED PROPERTY... ISSO PROVAVELMENTE QUER DIZER QUE 
+TEMOS 1 PUBLIC SETTER PROPERTY 
+
+QUE FAZ O SET DESSE NEGÓCIO...
+
+
+
+
+
+
+
+
+
+
+
+
+-> Os methods de 'prepend' e 'append' 
+
+
+
+exigem/aceitam 
+
+
+
+
+OU ARRAYS, OU STRINGS...
+
+
+
+
+
+
+
+--> A BOA NOTÍCIA É QUE NÓS REALMENTE TEMOS ACESSO A ESSES METHODS...
+
+
+MAS COMO FAZEMOS O CALL DELES?
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> SE VOLTAMOS AO 'app.php',
+
+
+PERCEBEMOS QUE TEMOS O METHOD CALL DE 
+
+'->withMiddleware'...
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+<?php
+
+use Illuminate\Foundation\Application;
+use Illuminate\Foundation\Configuration\Exceptions;
+use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Support\Facades\Route;
+
+return Application::configure(basePath: dirname(__DIR__))
+    ->withRouting(
+        web: __DIR__ . '/../routes/web.php',
+        commands: __DIR__ . '/../routes/console.php',
+        health: '/up',
+        // * THIS IS HOW WE CAN ADD ADDITIONAL ROUTES, WITHOUT CLOGGING 'web.php'...
+        then: function () {
+            Route::prefix('transactions')
+                ->name('transactions.')
+                ->group(base_path('routes/transactions.php'));
+        }
+    )
+    ->withMiddleware(function (Middleware $middleware) {
+        //
+    })
+    ->withExceptions(function (Exceptions $exceptions) {
+        //
+    })->create();
+
+
+
+
+
+
+
+
+
+
+
+
+COMO VC PODE VER,
+
+
+TEMOS ACESSO à INSTANCE DE '$middleware'...
+
+
+
+
+
+
+
+
+
+
+-> PROVAVELMENTE TEMOS QUE CHAMAR ALGO COMO 
+
+$middleware->prepends(YourMiddleware::class)...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> É POR ISSO QUE, ALI,
+
+
+DEVEMOS CHAMAR OS METHODS,
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+<?php
+
+use Illuminate\Foundation\Application;
+use Illuminate\Foundation\Configuration\Exceptions;
+use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Support\Facades\Route;
+
+return Application::configure(basePath: dirname(__DIR__))
+    ->withRouting(
+        web: __DIR__ . '/../routes/web.php',
+        commands: __DIR__ . '/../routes/console.php',
+        health: '/up',
+        // * THIS IS HOW WE CAN ADD ADDITIONAL ROUTES, WITHOUT CLOGGING 'web.php'...
+        then: function () {
+            Route::prefix('transactions')
+                ->name('transactions.')
+                ->group(base_path('routes/transactions.php'));
+        }
+    )
+    ->withMiddleware(function (Middleware $middleware) {
+
+        $middleware->append(); // * THIS APPENDS YOUR CUSTOM MIDDLEWARE TO THE END OF THE GLOBAL MIDDLEWARE STACK.
+    })
+    ->withExceptions(function (Exceptions $exceptions) {
+        //
+    })->create();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+MAS ANTES DE ADICIONARMOS 1 MIDDLEWARE,
+
+PRECISAMOS CRIÁ-LO...
+
+
+
+
+
+
+''DIGAMOS QUE QUEREMOS 1 MIDDLEWARE PARA 
+
+    ''__IDENTIFY A REQUEST BY ID'', 
+
+    FOR TRACKING PURPOSES''...
+
+
+
+
+
+
+
+
+-> àS VEZES VC VAI QUERER TRACKEAR  1 REQUEST INTEIRO...
+    E, AÍ, SE O REQUEST TEM 1 UNIQUE ID,
+
+    FICA MAIS FÁCIL ENCONTRAR ESSE REQUEST NOS LOGS,
+
+    SE VC TIVER O ID...
+
+
+
+
+
+
+
+
+--> PODEMOS CHAMAR ESSE MIDDLEWARE DE ALGO COMO 'assignRequestIdMiddleware'...
+
+
+
+
+
+
+
+
+-> PARA CRIAR ESSE MIDDLEWARE, PODEMOS USAR O ARTISAN COMMAND RESPECTIVO,
+
+
+QUE É 
+
+
+php artisan make:middleware
+
+
+
+
+
+
+
+
+FICOU TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+<?php
+
+namespace App\Http\Middleware;
+
+use Closure;
+use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
+
+class AssignRequestIdMiddleware
+{
+    /**
+     * Handle an incoming request.
+     *
+     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     */
+    public function handle(Request $request, Closure $next): Response
+    {
+        return $next($request);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+EU JÁ CRIEI 1 MIDDLEWARE ANTES,
+
+
+A SINTAXE É TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<?php
+
+namespace App\Http\Controllers\Auth;
+
+use App\Http\Controllers\Controller;
+use App\Models\User;
+use Illuminate\Auth\Events\Registered;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rules;
+use Illuminate\View\View;
+
+class RegisteredUserController extends Controller
+{
+    /**
+     * Display the registration view.
+     */
+    public function create(): View
+    {
+        return view('auth.register');
+    }
+
+    /**
+     * Handle an incoming registration request.
+     *
+     * @throws \Illuminate\Validation\ValidationException
+     */
+    public function handle(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
+            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+        ]);
+
+        $user = User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+        ]);
+
+        event(new Registered($user));
+
+        Auth::login($user);
+
+        return redirect(route('dashboard', absolute: false));
+    }
+}
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+ELES POSSUEM APENAS 1 ÚNICO METHOD, DE 'handle()',
+
+
+
+QUE 
+
+
+VAI 
+
+
+
+PROCESSAR NOSSOS HTTP REQUESTS...
+
+
+
+
+
+
+
+--> podemos usar isso para handlar o redirect do user,
+
+em casos de falta de auth...
+
+
+
+
+
+
+
+--> NO METHOD DE 'handle()',
+
+temos sempre 2 parameters,
+
+
+
+'request' e 'closure'...
+
+
+
+
+
+
+
+
+-> REQUEST É O CURRENT REQUEST...
+
+
+
+
+
+-> 'CLOSURE' -> é o '$next',
+
+                que serve para PASSAR O REQUEST AO PRÓXIMO MIDDLEWARE/ELO 
+
+                NA CHAIN DO APP,
+
+                PARA FAZER O GENERATE DA RESPONSE...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> O MIDDLEWARE PEGA O REQUEST, FAZ ALGO COM O REQUEST, E AÍ PASSA-O ADIANTE 
+NA CHAIN...
+
+
+
+
+
+
+
+
+NO CASO, O NEGÓCIO ESTÁ ASSIM:
+
+
+
+
+
+
+
+
+
+
+<?php
+
+namespace App\Http\Middleware;
+
+use Closure;
+use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
+
+class AssignRequestIdMiddleware
+{
+    /**
+     * Handle an incoming request.
+     *
+     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     */
+    public function handle(Request $request, Closure $next): Response
+    {
+        return $next($request);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+MAS VC PODE ESCREVER ALGO ASSIM:
+
+
+
+
+
+    public function handle(Request $request, Closure $next): Response
+    {
+        $response = $next($request);
+
+        // Your middleware logic
+
+        return $response;
+    }
+
+
+
+
+
+
+
+
+
+
+SE VC ESCREVER ALGO ASSIM,
+A LÓGICA DE SEU MIDDLEWARE SERÁ APLICADA __ DEPOIS __ 
+
+
+DA RESPONSE SER GENERATED... 
+
+
+
+
+
+E VC PODE FAZER DOS 2 JEITOS:
+
+
+
+
+
+1) PODE RODAR A LÓGICA _ ANTES__ DO GENERATE DA RESPONSE 
+
+
+
+2) PODE RODAR A LÓGICA __ DEPOIS __ DO GENERATE DA RESPONSE:
+
+
+
+
+
+
+
+
+    public function handle(Request $request, Closure $next): Response
+    {
+        // Your middleware logic 
+
+        $response = $next($request);
+
+        // Your middleware logic
+
+        return $response;
+    }
+
+
+
+
+
+
+
+
+
+
+OK... MAS, NO NOSSO CASO ATUAL,
+
+QUEREMOS 
+
+
+''ASSIGN THE ID TO THE REQUEST __ BEFORE_ 
+    WE __ PROCESS THE REQUEST''...
+
+
+
+
+
+
+
+
+
+--> É POR ISSO QUE PRECISAMOS COLOCAR A LÓGICA __ ANTES__...
+
+
+
+
+
+
+
+
+
+
+-> QUEREMOS GERAR O UNIQUE ID PARA O REQUEST...
+
+
+
+--> PARA ISSO, PODEMOS USAR A PACKAGE Uuid..
+
+
+
+
+
+
+
+
+
+--> temos o helper method do laravel para gerar unique ids,
+
+com este código:
+
+
+
+
+
+
+
+
+<?php
+
+namespace App\Http\Middleware;
+
+use Closure;
+use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Uid\Uuid;
+
+class AssignRequestIdMiddleware
+{
+    /**
+     * Handle an incoming request.
+     *
+     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     */
+    public function handle(Request $request, Closure $next): Response
+    {
+        // Your middleware logic
+        $requestId = (string) Uuid::v4();
+
+        $response = $next($request);
+
+        // Your middleware logic
+
+        return $response;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+DEPOIS DISSO, QUEREMOS ASSIGNAR O VALUE DE ESSE ID AO 'REQUEST HEADER'...
+
+
+
+
+
+
+
+
+--> PARA SETTAR 1 HEADER NO NOSSO REQUEST,
+
+
+ 
+PODEMOS USAR O METHOD 
+
+
+
+DE 'set()',
+
+
+no object 'headers', dentro do request,
+
+tipo assim:
+
+
+
+
+
+
+
+
+
+
+<?php
+
+namespace App\Http\Middleware;
+
+use Closure;
+use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Uid\Uuid;
+
+class AssignRequestIdMiddleware
+{
+    /**
+     * Handle an incoming request.
+     *
+     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     */
+    public function handle(Request $request, Closure $next): Response
+    {
+        // Your middleware logic (Before generating the response)
+        $requestId = (string) Uuid::v4();
+
+        $request->headers->set('X-Request-Id', $requestId);
+
+        $response = $next($request);
+
+        // Your middleware logic (After generating the response)
+        return $response;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+<?php
+
+namespace App\Http\Middleware;
+
+use Closure;
+use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Uid\Uuid;
+
+class AssignRequestIdMiddleware
+{
+    /**
+     * Handle an incoming request.
+     *
+     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     */
+    public function handle(Request $request, Closure $next): Response
+    {
+        // Your middleware logic (Before generating the response) goes here:
+        $requestId = (string) Uuid::v4();
+
+        $request->headers->set('X-Request-Id', $requestId);
+
+        $response = $next($request);
+
+        //  Your middleware logic (After generating the response) goes here:
+
+        return $response;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+MAS DEPOIS DE PROCESSAR O REQUEST,
+
+
+
+VAMOS QUERER ADICIONAR O 'requestId'
+
+
+AOS HEADERS DA RESPONSE, TAMBÉM,
+
+
+POR ISSO ESCREVEMOS ASSIM:
+
+
+
+
+
+
+
+<?php
+
+namespace App\Http\Middleware;
+
+use Closure;
+use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Uid\Uuid;
+
+class AssignRequestIdMiddleware
+{
+    /**
+     * Handle an incoming request.
+     *
+     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     */
+    public function handle(Request $request, Closure $next): Response
+    {
+        // Your middleware logic (Before generating the response) goes here:
+        $requestId = (string) Uuid::v4();
+
+        $request->headers->set('X-Request-Id', $requestId);
+
+        $response = $next($request);
+
+        //  Your middleware logic (After generating the response) goes here:
+
+        $response->headers->set('X-Request-Id', $requestId);
+
+        return $response;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+podemos adicionar 1 check para 
+
+VERIFICAR SE O HEADER JÁ TINHA SIDO SETTADO ANTES, POR MEIO DO 
+NGINX...
+
+
+
+
+
+
+BASTA ESCREVER TIPO ASSIM:
+
+
+
+
+
+
+
+$requestId = $request->headers->get('X-Request-Id');
+
+
+if(!$requestId) {
+
+}
+
+
+
+
+
+
+
+
+
+
+
+        // Your middleware logic (Before generating the response) goes here:
+        $requestId = $request->headers->get('X-Request-Id');
+
+        if (!$requestId) {
+            $requestId = (string) Uuid::v4();
+
+            $request->headers->set('X-Request-Id', $requestId);
+        }
+
+
+
+
+
+
+
+
+
+
+certo...
+
+
+
+faz sentido...
+
+
+
+AGORA DEVEMOS TENTAR REGISTRAR ESSE MIDDLEWARE...
+
+
+
+
+
+
+
+
+
+
+
+em 'app.php',
+
+PODEMOS ESCREVER ASSIM:
+
+
+
+
+
+
+
+
+
+<?php
+
+use Illuminate\Foundation\Application;
+use Illuminate\Foundation\Configuration\Exceptions;
+use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Support\Facades\Route;
+
+return Application::configure(basePath: dirname(__DIR__))
+    ->withRouting(
+        web: __DIR__ . '/../routes/web.php',
+        commands: __DIR__ . '/../routes/console.php',
+        health: '/up',
+        // * THIS IS HOW WE CAN ADD ADDITIONAL ROUTES, WITHOUT CLOGGING 'web.php':
+        // then: function () {
+        //     Route::prefix('transactions')
+        //         ->name('transactions.')
+        //         ->group(base_path('routes/transactions.php'));
+        // }
+    )
+    ->withMiddleware(function (Middleware $middleware) {
+        $middleware->append(App\Http\Middleware\AssignRequestIdMiddleware::class);
+    })
+    ->withExceptions(function (Exceptions $exceptions) {
+        //
+    })->create();
+
+
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+    ->withMiddleware(function (Middleware $middleware) {
+        $middleware->append(App\Http\Middleware\AssignRequestIdMiddleware::class);
+    })
+
+
+
+
+
+
+
+
+
+
+
+PODEMOS CHECAR SE ISSO FUNCIONOU,
+
+
+LÁ NA ROUTE DE TRANSACTIONS,
+
+
+tipo assim:
+
+
+
+
+
+
+
+
+
+
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Transaction;
+use Illuminate\Http\Request;
+
+class TransactionController extends Controller
+{
+    /**
+     * Display a listing of the resource.
+     */
+    public function index(Request $request)
+    {
+        echo $request->headers->get('X-Request-Id'); // this will return the value of the header 'X-Request-Id'
+        echo route('transactions.home') . '<br />'; // this will return the built url for the route 'transactions.home', in this case, 'localhost/transactions'
+
+        echo route('transaction', ['transactionId' => 55]) . '<br />'; // this will return the built url for the route 'transactions.show', in this case, 'localhost/transactions/55'
+
+
+        // * THIS WILL REDIRECT THE USER to the specified named route.
+        to_route('transactions.create'); // this will return the built url for the route 'transactions.home', in this case, 'localhost/transactions'
+
+
+
+        return view('transactions.index');
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+mas talvez vc queira ganhar acesso AO 'requestId'
+
+
+
+''BETWEEN MIDDLEWARES''....
+
+
+
+
+
+
+
+
+-> AÍ, SE VC QUISER FAZER ISSO,
+
+
+VC TERIA DE USAR 'prepend()', 
+
+EM VEZ DE 'append()',
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+    ->withMiddleware(function (Middleware $middleware) {
+
+        // $middleware->prepend(); // * THIS PREPENDS YOUR CUSTOM MIDDLEWARE TO THE BEGINNING OF THE GLOBAL MIDDLEWARE STACK.
+        // $middleware->append(); // * THIS APPENDS YOUR CUSTOM MIDDLEWARE TO THE END OF THE GLOBAL MIDDLEWARE STACK.
+
+        $middleware->prepend(App\Http\Middleware\AssignRequestIdMiddleware::class); // * THIS PREPENDS YOUR CUSTOM MIDDLEWARE TO THE BEGINNING OF THE GLOBAL MIDDLEWARE STACK.
+        $middleware->append(App\Http\Middleware\AssignRequestIdMiddleware::class);
+    })
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> ALÉM DA POSSIBILIDADE DE ASSIGN OS MIDDLEWARE GLOBALMENTE,
+
+VC PODE TAMBÉM ADICIONÁ-LOS 
+
+
+A ROUTES ESPECÍFICAS...
+
+
+
+
+
+
+
+--> também é possível 
+
+    MANIPULAR OS MIDDLEWARES GLOBAIS,
+
+    PARA LIGAR/DESLIGAR MIDDLEWARES GLOBAIS ESPECÍFICOS....
+
+    O PROFESSOR N RECOMENDA FAZER ISSO,
+
+    MAS ELE APONTA QUE É POSSÍVEL,
+
+    E É BOM TER ESSA FLEXIBILIADE...
+
+
+
+
+
+
+
+
+--> ISSO PODE SER VISTO COM A PROPRIEDADE '$this->global',
+
+dentro de 'Middleware.php'...
+
+
+
+
+
+
+
+
+--> PARA DESABILITAR OS GLOBAL MIDDLEWARES,
+
+
+PODEMOS 
+
+
+
+
+
+CHAMAR O METHOD DE '->use()',
+
+
+
+DENTRO DO METHOD 'withMiddleware()',
+
+em app.php...
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+<?php
+
+use Illuminate\Foundation\Application;
+use Illuminate\Foundation\Configuration\Exceptions;
+use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Support\Facades\Route;
+
+return Application::configure(basePath: dirname(__DIR__))
+    ->withRouting(
+        web: __DIR__ . '/../routes/web.php',
+        commands: __DIR__ . '/../routes/console.php',
+        health: '/up',
+    )
+    ->withMiddleware(function (Middleware $middleware) {
+
+         $middleware->use([]); // This is used if you want to disable the global middlewares.
+
+
+
+
+
+
+
+
+
+
+ENTAO O PROFESSOR NOS MOSTRA 1 EXEMPLO DE COMO PODEMOS DEFINIR MIDDLEWARES PARA ROUTES 
+ESPECÍFICAS...
+
+
+
+
+
+DIGAMOS QUE QUEREMOS TER 1 ROUTE QUE PODE SER ACESSADA APENAS POR ADMINS..
+
+
+
+
+
+
+
+
+
+
+
+-> PARA ISSO,
+PODEMOS ESCREVER TIPO ASSIM:
+
+
+
+
+
+
+
+Route::get('/administration', function() {
+    return 'Some Secret Admin Page';
+})
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+// Example of route-specific middleware (auth guards).
+Route::get('/administration', function () {
+    return 'Some Secret Admin Page';
+});
+
+
+
+
+
+
+
+
+AGORA SUPONHA QUE TEMOS 1 USER AUTENTICADO...
+
+
+
+
+
+
+
+
+--> PARA BLOQUEAR ESSA ROUTE DE UNAUTH USERS,
+
+
+PODEMOS ESCREVER ASSIM:
+
+
+
+
+
+
+
+// Example of route-specific middleware (auth guards).
+Route::get('/administration', function () {
+    return 'Some Secret Admin Page';
+})->middleware();
+
+
+
+
+
+
+
+
+
+
+
+PODEMOS PASSAR OU 1 ÚNICO MIDDLEWARE, OU 1 LISTA DE MIDDLEWRES, AQUI...
+
+
+
+
+
+
+
+
+
+
+
+
+--> PODE SER 1 MIDDLEWARE COMO 
+
+
+'CheckUserRole'...
+
+
+
+
+
+CRIAMOS ESSE MIDDLEWARE COM php artisan make:middleware 
