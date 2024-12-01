@@ -1,0 +1,2179 @@
+
+
+
+
+
+
+
+
+
+
+
+
+--> ATÉ AGORA, APRENDEMOS A CRIAR ROUTES BÁSICAS, COMO ESTAS:
+
+
+
+<?php
+
+use Illuminate\Support\Facades\Route;
+
+
+
+
+Route::get('/', function () {
+    return view('welcome');
+});
+
+Route::get('/dashboard', function () {
+    return 'Welcome to the dashboard';
+});
+
+Route::get('/users', function () {
+    return ['John', 'Mary', 'Peter'];
+});
+
+Route::redirect('/home', '/dashboard');
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+MAS TALVEZ QUEIRAMOS ACESSAR INFO DE DENTRO DA URL,
+
+
+POR MEIO DOS PARAMS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> PARA ISSO, PROVAVELMENTE USAREMOS 
+
+
+
+'request()->'...
+
+
+
+
+
+
+
+
+
+
+-> DIGAMOS QUE QUEREMOS TER URLS COMO 
+
+
+
+/transactions/123 
+
+
+/users/5 
+
+
+
+
+
+
+
+
+
+--> PARA ACESSAR ISSO DE DENTRO DOS CALLBACKS,
+
+    PODEMOS USAR ALGO CHAMADO DE 'Route parameters'...
+
+
+
+
+
+
+
+
+
+-> PODEMOS ESCREVER TIPO ASSIM:
+
+
+
+
+
+
+Route::get('/transactions/{transactionId}', function ($transactionId) {
+    return "Transaction $transactionId";
+});
+
+
+
+
+
+
+
+
+
+isso serve para fazer pass de models, também,
+
+
+
+com route model binding (visto no outro curso)...
+
+
+
+
+
+
+EX:
+
+
+
+// Route::patch('/jobs/{job}', [JobController::class, 'update']);
+
+
+
+
+
+
+
+--> se vc tem múltiplos parameters na url,
+
+
+    a ordem pela qual são definidos, na url,
+
+    será a ordem pela qual vc vai acessar, dentro do 'function()',
+
+    TIPO ASSIM:
+
+
+
+    
+Route::get('/transactions/{parameter1}/{parameter2}', function ($parameter1, $parameter2) {
+    return "Transaction $transactionId";
+});
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+Route::get('/transactions/{parameter1}/{parameter2}', function ($parameter1, $parameter2) {
+    return "Transaction $parameter1 $parameter2";
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+o nome do parameter, dentro da function, não importa, pode ser qualquer coisa...
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+Route::get('/transactions/{transactionId}/files/{fileId}', function ($id, $fileIdd) {
+    return "Transaction $id $fileIdd";
+});
+
+
+
+
+
+
+
+
+
+
+
+
+O NOME NÃO IMPORTA, A ÚNICA COISA QUE IMPORTA É A ORDEM DOS PARAMETERS...
+
+
+
+
+
+
+
+
+MESMO QUE O NOME DOS PARAMETERS NÃO IMPORTE,
+
+É BOM USAR OS MESMOS PARAMETER NAMES...
+
+
+
+
+
+
+-> ISSO EVITA PROBLEMAS COM MODELS, COMO VEREMOS MAIS TARDE...
+
+
+
+
+
+
+
+
+
+
+
+
+-> MAS DIGAMOS QUE QUEREMOS ACEITAR OPTIONAL PARAMETERS,
+    QUERY PARAMETERS TOTALMENTE OPCIONAIS (digamos que vc quer que o MONTH seja um parameter OPCIONAL, na url)
+
+
+
+
+tipo assim:
+
+
+
+
+
+/report/2024/5 
+
+
+
+
+
+
+'5', no caso, seria um parameter OPCIONAL...
+
+
+
+
+
+
+--> PODEMOS FAZER ISSO, DEIXAR OPCIONAL,
+
+    POR MEIO DO APPEND DO operator '?' 
+
+    NO SEGMENT QUE VC QUER DEIXAR OPTIONAL, TIPO ASSIM:
+
+
+
+
+    
+
+
+
+Route::get('/report/{year}/{month?}', function ($year, $month) {
+    return "Transaction $year $month";
+});
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+// with this, we can leave 'month' as an OPTIONAL PARAMETER
+Route::get('/report/{year}/{month?}', function ($year, $month) {
+    return "Report $year $month";
+});
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... MAS SE TENTARMOS UTILIZAR ESSA ROUTE ASSIM,
+
+SEM NENHUM OUTRO AJUSTE, FICAREMOS COM 1 ERROR...
+
+
+
+
+
+
+
+--> O ERROR É CAUSADO PELA AUSÊNCIA DE UM DEFAULT PARAMETER PARA O ARGUMENTO 'month'...
+
+
+
+--> É POR ISSO QUE DEVEMOS ESCREVER ALGO COMO '$month=null',
+
+
+    PARA DIZER QUE O VALUE DEFAULT SERÁ 'null'...
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+// with this, we can leave 'month' as an OPTIONAL PARAMETER. The only needed thing is the passing of a default parameter value (like 'null', in this case)
+Route::get('/report/{year}/{month?}', function ($year, $month = null) {
+    return "Report $year $month";
+});
+
+
+
+
+
+
+
+
+
+
+
+
+-> APESAR DE SER POSSÍVEL PASSAR ESSES VALUES USANDO ROUTE PARAMETERS,
+    TAMBÉM É POSSÍVEL USAR 
+
+    'QUERY STRING PARAMETERS'... na verdade,
+
+
+                                em mtos casos é melhor usar 
+
+                                query string, em vez de route parameters,
+
+                                PRINCIPALMENTE QUANDO VC LIDA COM COISAS COMO:
+
+                                1) FILTERING 
+
+                                2) SORTING 
+
+                                3) PAGINATION 
+
+
+                                e assim por diante...
+
+
+
+
+
+
+
+
+
+--> GERALMENTE, É CONSIDERADA BEST PRACTICE 
+    USAR ROUTE OU PATH PARAMETERS PARA O IDENTIFY DE RESOURCES 
+    ESPECÍFICOS, OU 1 RELATION DENTRO DE 1 RESTFUL API 
+
+    (nesse caso atual, temos 1 transactionId, 
+    e isso faz sentido estar dentro dos route parameters pq 
+    ESTAMOS IDENTIFICANDO 1 RESOURCE, QUE É UMA TRANSACTION, 1 TRANSACTION 
+    ESPECÍFICA  )
+
+
+
+ex:
+
+
+
+Route::get('/transactions/{transactionId}/files/{fileId}', function ($id, $fileIdd) {
+    return "Transaction $id $fileIdd";
+});
+
+
+
+
+
+O MESMO APLICA-SE À PARTE DE 'files/{fileId}',
+
+
+PQ NESSA PARTE NÓS TAMBÉM ESTAMOS 
+
+LIDANDO COM 1 RESOURCE, 'files',
+
+e estamos identificando esse resource, com 'fileId'...
+
+
+
+
+
+
+
+
+POR OUTRO LADO, QUERY STRING PARAMETERS 
+SÃO MAIS ADEQUADOS A CENÁRIOS EM QUE VC 
+
+APLICA FILTERS, SORTING E ETC...
+
+
+
+
+
+
+
+
+
+-> ISSO NÃO QUER DIZER QUE DEIXAR 'year' e 'month' 
+    COMO ROUTE PARAMETERS, AQUI, É ALGO DE TODO ERRADO...
+
+
+
+
+
+
+
+--> nessa route do report,
+
+que temos
+
+
+
+report/{year}/{?month},
+
+
+
+em que estamos configurando 1 single action, usar 
+
+route parameters é fine...
+
+
+
+
+
+
+
+
+
+
+--> MAS SE VC ESTIVER TRABALHANDO COM 1 RESOURCE 
+    COMO 'TRANSACTION FILE',
+
+    OU 1 REPORT,
+
+    EM QUE VC PASSARÁ 1 REPORTID,
+
+
+    AÍ O PROFESSOR RECOMENDA USAR QUERY STRING PARAMETERS,
+
+
+    em vez de route parameters...
+
+
+
+
+
+
+
+
+
+
+-> MAS COMO PODEMOS PASSAR ISSO COMO UMA QUERY STRING?
+
+
+
+
+
+
+
+
+
+-> é com o formato tipo 
+
+
+
+?year=2024&month=5 
+
+
+
+
+
+
+
+OK... MAS COMO PODEMOS ACESSAR ISSO, NA ACTION?
+
+
+
+
+
+
+--> PODEMOS ACESSAR COM request()->
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+$queryParam = request()->query('parameter_name');
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> OK... AGORA FALAREMOS SOBRE DEPENDENCY INJECTION,
+    DENTRO DAS ROUTE ACTIONS...
+
+
+
+
+
+
+
+
+
+--> ISSO PQ SUAS ROUTES TALVEZ TENHAM ALGUMAS DEPENDENCIES,
+    ALÉM DOS ROUTE PARAMETERS 
+
+    (
+        ou seja,
+
+        além de coisas como 
+
+        ($year, $month = null)
+    )
+
+
+
+
+
+
+
+
+
+
+
+
+--> CERTO... OUTRAS DEPENDENCIES...
+
+
+
+
+
+
+
+--> ISSO PQ O LARAVEL TE DEIXA 
+
+
+
+''INJECT CLASSES IN YOUR ROUTE ACTIONS...
+    
+    EITHER CONTROLLE ACTION OR CALLBACK (como estamos fazendo agora, com callback)...''
+
+
+
+
+
+--> SE VC FIZER ISSO, INJETAR UMA CLASS 
+    NAS CONTROLLER ACTIONS,
+
+
+    O LARAVEL SERVICE CONTAINER VAI FAZER O RESOLVE 
+    AUTOMÁTICO DESSA CLASS...
+
+
+
+
+
+
+
+
+
+
+
+
+--> POR EXEMPLO, UMA DAS DEPENDENCIES MAIS COMUNS QUE VC VAI INJETAR,
+    NESSAS ACTIONS,
+
+    É A CLASS DE 'request'..
+
+
+
+
+
+--> TIPO ASSIM:
+
+
+
+
+
+
+use Illuminate\Http\Request;
+
+class SearchController extends Controller
+{
+    public function index(Request $request)
+    {
+        // Accessing a specific query parameter
+        $searchTerm = $request->query('search');  // Access 'search' query parameter
+
+        // Accessing all query parameters
+        $allParams = $request->query();  // Returns an array of all query parameters
+
+        return view('search.index', compact('searchTerm', 'allParams'));
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+--> O LARAVEL FORNECE 1 MONTE DE 'TIPOS' DE 
+
+
+CLASS DE 'Request',
+
+MAS A QUE UTILIZAREMOS SERÁ A 
+
+'Illuminate/Http'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> AÍ PODEMOS ESCREVER ASSIM:
+
+
+
+// with this, we can leave 'month' as an OPTIONAL PARAMETER. The only needed thing is the passing of a default parameter value (like 'null', in this case)
+Route::get('/report/{year}/{month?}', function (Request $request, $year, $month = null) {
+
+    $year = $request->get('year');
+    $month = $request->get('month');
+
+    return "Report $year $month";
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+É CLARO QUE, COMO EM VÁRIAS COISAS NO LARAVEL,
+
+EXISTEM MÚLTIPLAS MANEIRAS DE FAZER O GET DESSES QUERY PARAMETERS,
+DENTRO DA URL....
+
+
+
+
+
+
+
+--> HÁ A HELPER FUNCTION DE 
+
+
+
+request->get()
+
+
+
+
+
+
+
+
+
+
+
+-> MAS O PROFESSOR PREFERE A VERSÃO DA DEPENDENCY INJECTION,
+EM VEZ DE USAR ESSA HELPER FUNCTION...
+
+
+
+
+
+--> VEREMOS ISSO MAIS TARDE, QUANDO ESTUDARMOS A CLASS DE 'REQUEST'...
+
+
+
+
+
+
+
+
+--> CERTO... DIGAMOS QUE QUEREMOS PEGAR O 'REPORT' EM SI,
+    LOGO DEPOIS...
+
+
+
+
+
+EX:
+
+
+
+
+
+// with this, we can leave 'month' as an OPTIONAL PARAMETER. The only needed thing is the passing of a default parameter value (like 'null', in this case)
+Route::get('/report/{reportId}', function (Request $request, $reportId) {
+    return "Report $year $month";
+});
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+// we get the id from the url, and the request parameters from the query string (?year=2020&month=12)
+Route::get('/report/{reportId}', function (Request $request, $reportId) {
+
+    $year = $request->get('year');
+    $month = $request->get('month');
+
+    return "generting report $reportId";
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-->  O PROFESSOR DESTACA QUE, NESSE CASO,
+
+
+
+        ''ROUTE HAS BOTH THE ROUTE PARAMETERS AND SOME DEPENDENCIES''...
+
+
+
+
+
+
+--> OS ROUTE PARAMETERS, NESSE CASO, 
+    DEVEM SER LISTADOS_  DEPOIS __ DAS OUTRAS DEPENDENCIES...
+
+
+
+É POR ISSO QUE ESCREVEMOS 
+
+
+(Request $request, $reportId)
+
+
+
+
+
+
+
+
+
+
+-> O LARAVEL É BEM FLEXÍVEL, E AS COISAS AINDA VÃO FUNCIONAR 
+    SE VC ESCREVER OS ROUTE PARAMETERS ANTES DE 'Request $request',
+
+    MAS AINDA ASSIM, É MELHOR GARANTIR, DEIXAR AS COISAS ORGANIZADAS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... MAS PERCEBA QUE NÃO DEFINIMOS OS DATA TYPES PARA 
+
+'reportId', 'transactionId', 'fileId'...
+
+
+
+
+
+
+
+
+
+
+-> PODEMOS SETTAR TYPES PARA ESSES PARAMETERS,
+
+PARA O 'reportId',
+
+por exemplo...
+
+
+
+
+
+
+
+
+
+-> TIPO 'int'... --> TIPO ASSIM:
+
+
+
+
+
+
+
+
+// we get the id from the url, and the request parameters from the query string (?year=2020&month=12)
+Route::get('/report/{reportId}', function (Request $request, int $reportId) {
+
+    $year = $request->get('year');
+    $month = $request->get('month');
+
+    return "generting report $reportId";
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... MAS E SE TENTAMOS PASSAR 1 VALUE DECIMAL, EM VEZ DE 1 INTEGER?
+
+
+(tipo 123.55)...
+
+
+
+
+SE TENTAMOS FAZER ISSO,
+
+
+
+AINDA FUNCIONA,
+
+PQ 
+
+O 
+
+PHP 
+
+VAI CASTAR ISSO, 
+
+TRANSFORMAR EM 1 INTEGER...
+
+
+
+
+
+MAS SE TENTAMOS PASSAR 1 STRING,
+FICAMOS COM 1 ERROR,
+
+FICAMOS
+
+
+
+COM O ERROR 
+
+DE 
+
+
+
+
+'must be of type int, string given int'...
+
+
+
+
+
+
+--> QUER DIZER QUE ISSO É APENAS BASIC PHP TYPE CHECKING...
+
+
+
+
+
+
+
+
+
+
+--> OK... MAS VC PODE ESTAR SE PERGUNTANDO:
+
+
+
+''WHAT IF WE DECLARE STRICT TYPES, INSIDE OF OUR web.php ROUTES FILE?''
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+<?php
+declare(strict_types=1);
+
+
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
+
+
+
+
+
+Route::get('/', function () {
+    return view('welcome');
+});
+
+Route::get('/dashboard', function () {
+    return 'Welcome to the dashboard';
+});
+
+Route::get('/users', function () {
+    return ['John', 'Mary', 'Peter'];
+});
+
+Route::get('/transactions/{transactionId}', function ($transactionId) {
+    return "Transaction $transactionId";
+});
+
+Route::get('/transactions/{parameter1}/{parameter2}', function ($parameter1, $parameter2) {
+    return "Transaction $parameter1 $parameter2";
+});
+
+// with this, we can leave 'month' as an OPTIONAL PARAMETER. The only needed thing is the passing of a default parameter value (like 'null', in this case)
+Route::get('/report/{year}/{month?}', function ($year, $month = null) {
+    return "Report $year $month";
+});
+
+
+// Example of how to get the REQUEST PARAMETERS from the Request object (without helper function 'request()')
+Route::get('/report/{year}/{month?}', function (Request $request, int $year, int $month = null) {
+
+    $year = $request->get('year');
+    $month = $request->get('month');
+
+    return "Report $year $month";
+});
+
+
+// we get the id from the url, and the request parameters from the query string (?year=2020&month=12)
+Route::get('/report/{reportId}', function (Request $request, int $reportId) {
+
+    $year = $request->get('year');
+    $month = $request->get('month');
+
+    return "generting report $reportId";
+});
+
+
+Route::redirect('/home', '/dashboard');
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+SE DEIXARMOS ESSA LINHA,
+
+DE 
+
+'
+
+
+declare(strict_types=1);
+
+
+',
+
+
+
+
+
+ISSO IMPEDIRIA OS ids DE SEREM PASSADOS COMO DECIMAL VALUES??
+
+
+
+
+
+
+
+
+
+
+
+--> A RESPOSTA É _NÃO__...
+
+
+
+
+
+
+
+
+PQ SE DIGITAMOS transactions/123.55,
+
+
+
+
+
+
+A PÁGINA AINDA É CARREGADA,
+
+É CARREGADA COMO 
+
+transactions/123 ....
+
+
+
+
+
+
+
+
+
+
+A RAZÃO PARA ISSO, NO CASO,
+
+
+
+É QUE AQUELE CALLBACK,
+O CALLBACK DA ROUTE,
+
+DE 
+
+
+
+''
+
+
+ function ($transactionId) {
+    return "Transaction $transactionId";
+},
+
+
+''
+
+
+
+DENTRO DA ROUTE,
+
+
+ELE É CHAMADO DE DENTRO DO LARAVEL FRAMEWORK... E A PARTE DO LARAVEL QUE FAZ O CALL DESSE CALLBACK,
+NO CASO,
+
+
+__ NÃO TEM __ O STRICT TYPES ENABLADO...
+
+
+
+
+E É EXATAMENTE POR ISSO QUE O PHP ESTÁ TENTANDO FAZER A TYPE COHERCION MESMO ASSIM,
+
+MESMO COM 'declare(strict_types=1)'
+
+na nossa file,
+
+
+E CONVERTE O DECIMAL EM INTEGER... 
+
+
+
+
+
+
+ISSO TUDO É JUST SIMPLE TYPE JUGGLING NO PHP...
+
+
+
+
+
+
+
+
+
+
+
+
+-> OK, MAS COMO PODEMOS GARANTIR QUE APENAS INTEGERS SEJAM PASSADOS, DENTRO 
+    DOS ROUTE PARAMETERS?
+
+    
+
+
+
+
+
+
+--> PARA ISSO, 
+
+
+''WE CAN ADD CONSTRAINTS TO OUR ROUTE PARAMETERS,
+    USING REGULAR EXPRESSIONS''... ISSO É PERMITIDO, PELO LARAVEL...
+
+
+
+
+
+
+
+
+
+
+
+
+--> PARA ISSO, PODEMOS USAR O METHOD DE 'where()'...
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+// Using regular expressions as constraints, in our routes, to make sure that only ints are passed as route parameters:
+Route::get('/report/{reportId:[0-9]+}', function (Request $request, int $reportId) {
+    return "generting report $reportId";
+});
+
+
+
+
+
+
+
+
+
+NO CASO,
+
+
+
+A ALTERNATIVA A ISSO É ESCREVER COM WHERE,
+
+
+
+TIPO ASSIM:
+
+
+
+// Using regular expressions as constraints, in our routes, to make sure that only ints are passed as route parameters:
+Route::get('/report/{reportId}', function (Request $request, int $reportId) {
+    return "generting report $reportId";
+})->where('transactionId', '[0-9]+')
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+E ISSO REALMENTE FUNCIONA...
+
+
+
+
+
+
+COM ISSO, APENAS INTEGERS SÃO PERMITIDOS,
+
+COMO VALUE DE NOSSO ROUTE PARAMETERS...
+
+
+
+
+
+
+
+
+--> E PODEMOS CHAINAR MÚLTIPLOS WHERES,
+
+
+SE QUISERMOS...
+
+
+
+
+
+// Using regular expressions as constraints, in our routes, to make sure that only ints are passed as route parameters:
+Route::get('/report/{reportId}', function (Request $request, int $reportId) {
+    return "generting report $reportId";
+})->where('transactionId', '[0-9]+')->where('fileId', '[0-9]+')
+
+
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+// We can also CHAIN where clauses, with multiple parts of the url being targeted by the regular expressions.
+Route::get('/report/{reportId}', function (Request $request, int $reportId) {
+    return "generting report $reportId";
+})->where('transactionId', '[0-9]+')->where('year', '[0-9]+');
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ALÉM DE PODER CHAINAR WHERE CLAUSES,
+
+
+PODEMOS PASSAR 1 ARRAY CONTENDO 
+
+
+A LISTA DE PARAMETERS 
+
+E REGULAR EXPRESSIONS, COMO KEY-VALUE PAIRS...
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+->where(
+    (['transactionId' => '[0-9]+', 'fileId' => '[0-9]+'] )
+)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... MAS DIGAMOS QUE TEMOS MÚLTIPLAS ROUTES,
+
+ROUTES QUE TENHAM TANTO 
+
+
+
+'transactionId' e 'fileId'...
+
+
+
+
+
+
+
+
+SE TIVERMOS 2 vezes isso, estaríamos BASICAMENTE DUPLICANDO os 'where()'...
+
+
+
+
+
+
+
+--> imagine outra route, de 'post',
+
+
+
+ELA FICARIA COM AS MESMAS COISAS, MAS DUPLICADAS:
+
+
+
+
+
+// We can also CHAIN where clauses, with multiple parts of the url being targeted by the regular expressions.
+Route::get('/report/{reportId}', function (Request $request, int $reportId) {
+    return "generting report $reportId";
+})->where('transactionId', '[0-9]+')->where('year', '[0-9]+');
+
+
+
+
+// We can also CHAIN where clauses, with multiple parts of the url being targeted by the regular expressions.
+Route::post('/report/{reportId}', function (Request $request, int $reportId) {
+    return "generting report $reportId";
+})->where('transactionId', '[0-9]+')->where('year', '[0-9]+');
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> PARA COMBATER ESSA REPETIÇÃO,
+
+    O LARAVEL TE PERMITE DEFINIR 1 'GLOBAL CONSTRAINT' PARA 1 PARAMETER,
+
+    QUE SEMPRE SERÁ APLICADA,
+
+    EM TODAS AS ROUTES...
+
+
+
+
+--> PODEMOS USAR O method de 'pattern()',
+    NA ROUTE INSTANCE,
+
+
+    MAS ISSO É ALGO QUE DEVE SER DEFINIDO DENTRO 
+
+
+    DO method de 'boot()' dos app service providers...
+
+
+
+
+
+
+
+
+    BASICAMENTE, AQUI:
+
+
+
+
+
+
+
+    <?php
+
+namespace App\Providers;
+
+use Illuminate\Support\ServiceProvider;
+
+class AppServiceProvider extends ServiceProvider
+{
+    /**
+     * Register any application services.
+     */
+    public function register(): void
+    {
+        //
+    }
+
+    /**
+     * Bootstrap any application services.
+     */
+    public function boot(): void
+    {
+        //
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+EU ACHO QUE FIZ ISSO, NO ÚLTIMO CURSO DE LARAVEL:
+
+
+
+
+
+
+
+
+
+
+
+
+
+<?php
+
+namespace App\Providers;
+
+use App\Models\User;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Pagination\Paginator;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\ServiceProvider;
+
+class AppServiceProvider extends ServiceProvider
+{
+    /**
+     * Register any application services.
+     */
+    public function register(): void
+    {
+        //
+        // Model::unguard(); // Disable mass assignment protection globally
+
+    }
+
+    /**
+     * Bootstrap any application services.
+     */
+    public function boot(): void
+    {
+
+        // * Disables lazy loading entirely, as a safety measure:
+        Model::preventLazyLoading();
+
+        // * Switch the type of view that is being used for the paginator (the default is tailwind, but you can use bootstrap, for example):
+        // Paginator::useBootstrapFive();
+
+        Gate::define('edit-job', function (User $user, $job) {
+            // 2nd layer: check if the user is the owner of the job
+            return $job->employer->user->is($user); // will return a boolean, which is what the Gate needs/wants.
+        });
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+O 'AppServiceProvider' é super importante...
+
+
+mais tarde o estudaremos...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+MAS, AGORA,
+
+
+
+O PROFESSOR QUER NOS MOSTRAR COMO DEFINIR ESSAS CONSTRAINTS,
+
+DENTRO DO 'AppServiceProvider'..
+
+
+
+
+
+
+
+
+
+PARA FAZER ISSO, 
+
+ESCREVEMOS ASSIM:
+
+
+
+
+
+
+
+
+
+
+<?php
+
+namespace App\Providers;
+
+use Illuminate\Support\Facades\Route;
+use Illuminate\Support\ServiceProvider;
+
+class AppServiceProvider extends ServiceProvider
+{
+    /**
+     * Register any application services.
+     */
+    public function register(): void
+    {
+        //
+    }
+
+    /**
+     * Bootstrap any application services.
+     */
+    public function boot(): void
+    {
+        //
+        Route::pattern('transactionId', '[0-9]+'); // this is a constraint applied to all routes that have a parameter named 'id'
+    }
+}
+
+
+
+
+
+
+
+
+
+
+--> BASICAMENTE, COM ISSO, 
+
+USAMOS A FACADE DE 'Route'
+
+PARA DEFINIR ESSA 
+
+
+CONSTRAINT GLOBAL... 
+
+
+
+
+
+
+--> PODEMOS FAZER A MESMA COISA COM O 'fileId',
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+<?php
+
+namespace App\Providers;
+
+use Illuminate\Support\Facades\Route;
+use Illuminate\Support\ServiceProvider;
+
+class AppServiceProvider extends ServiceProvider
+{
+    /**
+     * Register any application services.
+     */
+    public function register(): void
+    {
+        //
+    }
+
+    /**
+     * Bootstrap any application services.
+     */
+    public function boot(): void
+    {
+        //
+        Route::pattern('transactionId', '[0-9]+'); // this is a constraint applied to all routes that have a parameter named 'id'
+        Route::pattern('fileId', '[0-9]+'); // this is a constraint applied to all routes that have a parameter named 'id'
+    }
+}
+
+
+
+
+
+
+
+
+
+
+SE FAZEMOS ISSO, PODEMOS REMOVER OS 'where()'
+
+que 
+tínhamos escrito anteriormente, pq agora 
+
+isso já vai aplicar 
+
+essas constraints a todos os locais do app...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CASO VC NÃO QUEIRA DEFINIR ISSO GLOBALMENTE,
+
+
+E CASO VC QUEIRA APENAS TER 1 OU 2 PARAMETERS QUE 
+VC QUER 
+
+QUE SEJAM SEMPRE INTEGERS/TENHAM ESSA VALIDATION,
+
+
+
+AÍ VC PODE USAR O METHOD 'whereNumber()'
+
+
+
+
+
+
+
+
+--> PARA APLICAR ESSE METHOD, ESCREVEMOS TIPO ASSIM:
+
+
+
+
+
+// Same thing as the route above, but with 'whereNumber' instead of 'where':
+Route::get('/report/{reportId}', function (Request $request, int $reportId) {
+    return "generting report $reportId";
+})->whereNumber('transactionId', '[0-9]+')->whereNumber('year', '[0-9]+');
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+É CLARO QUE O LARAVEL FORNECE ALGUNS OUTROS METHODS CONVENIENTES COMO ESSES..
+
+
+
+
+
+
+
+TIPO 'whereAlpha()'
+
+
+
+'whereAlphanumeric',
+
+
+ etc etc...
+
+
+
+
+
+
+
+
+
+
+ 'whereIn()'...
+
+
+
+
+
+
+
+
+
+
+-> 'whereIn()' É __ ESPECIALMENTE ÚTIL
+    QUANDO VC QUER 'VALIDATE AGAINST A LIST OF 
+                    ACCEPTABLE VALUES'...
+
+
+
+
+
+
+
+--> TALVEZ VC QUEIRA ESCOLHER FILES 
+    'NOT BY A SPECIFIC ID, BUT BY A SPECIFIC FILE TYPE...''
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+// 'whereIn()' selects against a list of acceptable values:
+Route::get('/files/{fileType}', function (Request $request, int $fileType) {
+    return "generating fileType $fileType";
+})->whereIn('fileType', ['pdf', 'xlsx', 'csv']);
+
+
+
+
+
+
+OU ASSIM:
+
+
+
+
+
+// 'whereIn()' selects against a list of acceptable values:
+Route::get('/files/{fileType}', function (Request $request, int $fileType) {
+    return "generating fileType $fileType";
+})->whereIn('fileType', ['receipt', 'statement']);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... AÍ O LARAVEL VAI CHECAR SE O GIVEN FILE TYPE SERÁ ALGUM DESSES 
+DA LIST...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> O LARAVEL SUPORTA PHP ENUM TYPE DECLARATIONS...
+
+
+
+
+
+
+
+
+
+
+-> DIGAMOS QUE CRIAMOS 1 ENUM TYPE,
+
+em 1 folder de nome 'enums'...
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+<?php
+declare(strict_types=1);
+
+namespace App\Enums;
+
+
+enum FileType: string
+{
+    case PDF = 'pdf';
+    case XLSX = 'xlsx';
+    case CSV = 'csv';
+}
+
+
+
+
+
+
+
+
+
+
+
+
+AÍ, 
+
+
+LÁ 
+
+
+
+
+NA ROUTE,
+
+
+
+EM VEZ DE USAR A constraint de 'whereIn()',
+
+
+
+PODEMOS SIMPLESMENTE 
+
+FAZER O TYPEHINT 
+
+
+
+DO TYPE DO PARAMETER,
+
+TIPO ASSIM:
+
+
+
+
+
+
+// We can also use enum types to validate against the values passed as route parameters.
+Route::get('/files/{fileType}', function (Request $request, FileType $fileType) {
+    return "generating fileType $fileType->value";
+});
+
+
+
+
+
+
+
+
+O QUE VAI ACONTECER É:
+
+
+
+'LARAVEL, BEHIND THE SCENES, WILL TRY TO IMPLICITLY 
+    BIND THE VALUE TO THE ENUM, BY ATTEMPTING TO CREATE AN ENUM INSTANCE,
+    USING THE VALUE THAT YOU PASSED''...
+
+
+
+
+
+
+
+
+
+
+
+
+para ver isso, o professor abre a class de 'ImplicitRouteBinding'...
+
+
+
+
+
+
+$this->router->substituteImplicitBindings()
+
+
+
+
+
+
+
+
+
+isso chama 
+
+ImplicitRouteBinding::resolveForRoute()
+
+
+
+
+
+
+
+
+
+
+esse method,
+
+'resolveForRoute()',
+
+
+
+
+ele chama 
+
+
+
+'resolveBackedEnumsForRoute()'..
+
+
+
+
+
+
+
+
+
+
+--> ok, isso tudo é low-level details...
+
+
+
+
+
+
+
+
+
+
+
+VOCE NAO PRECISA SER 1 EXPERT EM LARAVEL 
+
+PARA ENTENDER TUDO ISSO...
+
+
+
+
+
+
+
+
+
+
+-> MAS ISSO NÃO QUER DIZER QUE O METHOD DE 'whereIn()'
+
+é inútil... 
+
+
+
+PQ NEM SEMPRE SUAS LISTS SERÃO ENUMS... ELAS PODERÃO, ÀS VEZES, CHEGAR DE OUTROS LUGARES...
+
+
+
+MAS É BOM USAR ENUMS NO CODE,
+
+PQ ISSO DEIXA O CODE BEM MAIS LIMPO...
