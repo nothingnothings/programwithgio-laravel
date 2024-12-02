@@ -1,0 +1,2824 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Agora finalmente veremos o service container do laravel...
+
+
+
+
+
+
+
+
+
+
+-> O SERVICE CONTAINER É SIMPLESMENTE O NOSSO 
+
+'IOC',
+
+ou 'DI CONTAINER'...
+
+
+
+
+
+
+
+
+--> É O DEPENDENCY INJECTION CONTAINER...
+
+
+
+
+
+
+
+DEPENDENCY INJECTION --> É UMA TÉCNICA/PATTERN EM QUE 
+
+                            UM OBJECT/CLASS RECEBE AS DEPENDENCIES 
+                            DE 1 SOURCE EXTERNO,
+
+                            EM VEZ DE CRIAR 
+
+
+                            AS DEPENDENCIES ELE MESMO...
+
+
+
+                    --> ISSO DEIXA SEU CÓDIGO MAIS DECOUPLED,
+                        DEIXANDO ELE MAIS MODULAR E DE FÁCIL TESTE...
+
+
+
+                    --> O SERVICE CONTAINER É BASICAMENTE UMA TOOL PARA 
+                        FAZER MANAGE DESSAS CLASS DEPENDENCIES...
+
+
+
+
+
+                    --> DEVEMOS VER O CONTROLLER DE 'TransactionController',
+
+
+                    como exemplo:
+
+
+
+    
+
+
+
+
+
+
+
+
+    <?php
+
+namespace App\Http\Controllers;
+
+use App\Http\Middleware\CheckUserRole;
+use App\Models\Transaction;
+use Illuminate\Http\Request;
+
+class TransactionController extends Controller
+{
+    /**
+     * Display a listing of the resource.
+     */
+    public function index(Request $request)
+    {
+        echo $request->headers->get('X-Request-Id'); // this will return the value of the header 'X-Request-Id'
+        echo route('transactions.home') . '<br />'; // this will return the built url for the route 'transactions.home', in this case, 'localhost/transactions'
+
+        echo route('transaction', ['transactionId' => 55]) . '<br />'; // this will return the built url for the route 'transactions.show', in this case, 'localhost/transactions/55'
+
+
+        // * THIS WILL REDIRECT THE USER to the specified named route.
+        to_route('transactions.create'); // this will return the built url for the route 'transactions.home', in this case, 'localhost/transactions'
+
+
+
+        return view('transactions.index');
+    }
+
+    /**
+     * Display the specified resource.
+     */
+    public function show(string $transactionId): string
+    {
+        return 'Transaction ' . $transactionId;
+    }
+
+    // public function show(Transaction $transaction)
+    // {
+    //     return 'Transaction ' . $transaction->id;
+    // }
+
+    /**
+     * Show the form for creating a new resource.
+     */
+    public function create(): string
+    {
+        return 'Form to create a transaction';
+    }
+
+
+    /**
+     * Store a newly created resource in storage.
+     */
+    public function store(Request $request): string
+    {
+        return 'Transaction Created';
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     */
+    public function edit(Transaction $transaction)
+    {
+        //
+    }
+
+
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(Request $request, Transaction $transaction)
+    {
+        //
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(Transaction $transaction)
+    {
+        //
+    }
+
+    // public static function middleware()
+    // {
+    //     return [
+    //         CheckUserRole::class,
+    //     ];
+    // }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> dentro disso, temos o method de 'show()',
+
+
+
+    que aceita 'transactionId'
+
+    como argumento..
+
+
+
+EX:
+
+
+    public function show(string $transactionId): string
+    {
+        return 'Transaction ' . $transactionId;
+    }
+
+
+
+
+
+
+
+
+-> nesse caso, o transactionId é uma DEPENDENCY...
+
+
+
+
+
+
+
+--> NESSE CASO, NÃO É UMA CLASS/OBJECT DEPENDENCY,
+
+    É UM INTEGER... MAS 
+
+
+    SE FOSSEMOS FAZER ACCEPT DE OUTRA DEPENDENCY AQUI,
+
+
+
+    COMO UMA 'TransactionService' class,
+
+
+    que talvez fizesse o handle de 
+
+    alguma transaction processing ou lookup de uma database table,
+
+    aí 
+
+
+    essa seria uma class dependency, dentro de esse method...
+
+
+
+
+
+
+
+-> AÍ, NESSE CASO, VC TALVEZ QUEIRA FAZER INJECT DE 
+    ESSA CLASS NO METHOD DE 'show()',
+
+
+    OU ENTÃO 
+
+    NO CONSTRUCTOR DA CLASS 'TransactionController',
+
+
+
+    PARA QUE FIQUE DIRETAMENTE DISPONÍVEL... PARA QUE POSSA ACESSAR 
+
+    ISSO NOS METHODS APROPRIADOS...
+
+
+
+
+
+
+
+
+
+-> PODEMOS FAZER ALGO TIPO ASSIM:
+
+
+
+
+
+class TransactionController extends Controller
+{
+
+    public function __construct(
+        private readonnly TransactionService $transactionService
+    ) {}
+
+
+
+
+
+
+
+
+
+É CLARO QUE AINDA NÃO TEMOS ESSA CLASS,
+
+DEVEMOS CRIÁ-LA AGORA...
+
+
+
+
+
+
+
+
+
+MAS ISSO É BASICAMENTE A DEPENDENCY INJECTION...
+
+
+NÓS NÃO ESTAMOS INSTANCIANDO ESSA CLASS/CRIANDO 1 OBJECT DELA DENTRO DO CONTROLLER,
+
+E SIM  ESTAMOS SETTANDO ISSO COMO 1 DEPENDENCY...
+
+
+
+
+
+
+
+
+-> O BENEFÍCIO DISSO É QUE 
+
+O WRITE DE TESTS FICA BEM MAIS FÁCIL...
+
+
+
+''BECAUSE WE COULD CREATE A MOCK VERSION OF THIS TransactionService 
+class, AND THEN PASS IT IN THE PLACE OF THE real TransactionService class''..
+
+
+
+
+
+
+
+-> CERTO... ISSO FAZ SENTIDO...
+
+
+
+
+
+
+
+-> OUTRO BENEFÍCIO É ABSTRAÇÃO:
+
+ 
+
+ ''THE TransactionController IS NOT RESPONSIBLE FOR CREATING AN OBJECT/INSTANCE 
+ OF THE TransactionService  class... 
+
+ IT DOESNT CARE ABOUT HOW THAT OBJECT IS CREATED, IT JUST GETS IT AS A DEPENDENCY,
+ AND SHIFTS THE RESPONSIBILITY ELSEWHERE....''
+
+
+
+
+
+
+
+
+
+
+-> E É EXATAMENTE POR ISSO QUE 
+    DEPENDENCY INJECTION É GERALMENTE CHAMADA 
+
+    DE 1 FORMA ESPECÍFICA DE 'INVERSION OF CONTROL' (IOC),
+
+
+
+
+
+
+
+
+
+
+
+IOC --> ''IS A DESIGN PRINCIPLE THAT SHIFTS THE CONTROL, FROM THE 
+            CUSTOM CODE, TO AN EXTERNAL ENTITY/SOURCE, THAT IS OFTEN 
+            REFERED TO AS A __ 'FRAMEWORK' ''....
+
+
+            THIS PRINCIPLE ALLOWS THE FRAMEWORK/EXTERNAL ENTITY 
+            TO MANAGE THE EXECUTION AND CONFIGURATION OF CUSTOM CODE... WHICH 
+            LEADS TO MORE MODULAR AND DECOUPLED CODE... IN THIS CONTEXT,
+            THE 'FRAMEWORK' REFERS TO ANY GENERIC CODE THAT MANAGES THE LIFECYCLE 
+            AND DEPENDENCIES OF COMPONENTS...
+
+
+
+            THE DEPENDENCY INJECTION IS JUST A FORM/TECHNIQUE 
+            OF INVERSION OF CONTROL, OR A TECH TO IMPLEMENT IT...
+
+
+            IN THAT CASE, THE CONTROL OF OBJECT CREATION AND THEIR DEPENDENCIES 
+            IS BASICALLY INVERTED... 
+
+            IN OTHER WORDS, INSTEAD OF OBJECTS CREATING THEIR OWN DEPENDENCIES,
+            THE RESPONSIBILITY IS TRANSFERRED TO AN EXTERNAL SOURCE 
+            (nesse caso, o external source é ''something else that instantiates this 
+            controller'', ou até mesmo algo externo a isso...)
+
+
+
+        
+
+        É POR ISSO QUE O CONTROLLER NÃO SE IMPORTA COM A MANEIRA PELA QUAL 
+
+        A CLASS DE TransactionService é instanciada e passed down...
+
+
+
+
+
+
+
+--> É CLARO QUE EXISTEM DIFERENTES TIPOS DE DEPENDENCY INJECTIONS... 
+
+    A MANEIRA QUE USAMOS, AQUI, É CHAMADA DE 'CONSTRUCTION INJECTION'...
+
+
+
+    CONSTRUCTION INJECTION --> DEPENDENCIES SÃO PROVIDENCIADAS DENTRO 
+                                DO CLASS CONSTRUCTOR...
+
+
+
+
+    SETTER INJECTION --> DEPENDENCIES SÃO PROVIDENCIADAS ATRAVÉS 
+                            DE SETTER METHODS...
+
+
+    METHOD INJECTION --> DEPENDENCIES SÃO PROVIDENCIADAS ATRAVÉS 
+                         DE METHOD ARGUMENTS, DIRETAMENTE...
+
+
+
+
+
+
+
+            
+
+
+
+
+
+--> OK... SE INJETAMOS 
+
+    O TRANSACTION SERVICE DIRETAMENTE NO METHOD DE 'show',
+
+    ISSO SERIA 
+
+    METHOD INJECTION...
+
+
+
+
+
+
+
+-> 
+
+
+ex:
+
+
+
+public function store(Request $request): string 
+{
+    return 'Example';
+}
+
+
+
+
+
+ESSE É UM EXEMPLO DE METHOD INJECTION...
+
+O METHOD NÃO SE IMPORTA COM A MANEIRA PELA QUAL ESSE REQUEST Object É PASSADO,
+
+ELE SÓ QUER QUE SEJA PASSADO...
+
+
+
+
+
+O LARAVEL FAZ RESOLVE DE ESSAS DEPENDENCIES,
+
+POR MEIO DO CONTAINER,
+
+POR CONTA PRÓPRIA...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> PODERÍAMOS INJETAR O 'TransactionService'
+
+DIRETAMENTE NO STORE,
+
+E ELE TBM SERIA RESOLVED... 
+
+
+MAS É MELHOR N FAZER ISSO, PQ FICA BAGUNÇADO...
+
+
+
+
+
+
+
+
+
+--> APENAS INJETE DIRETAMENTE O SERVICE
+
+    NO METHOD 
+
+    SE APENAS ESSE ÚNICO METHOD UTILIZA 
+
+    O SERVICE, NO CONTROLLER...
+
+
+
+
+
+
+
+
+
+
+TIPICAMENTE,
+
+
+A MANEIRA PELA QUAL 
+
+
+
+AS DEPENDENCIES SÃO RESOLVED 
+
+
+É 
+
+
+
+'DI CONTAINERS' 
+
+
+E 
+
+
+'AUTO-WIRING MAGIC'...
+
+
+
+
+
+
+
+
+
+
+
+CONTAINER --> É RESPONSÁVEL 
+                BASICAMENTE PELO MANAGE E INJECT DE DEPENDENCIES,
+
+                EM QUALQUER LUGAR QUE SÃO NECESSÁRIAS...
+
+
+
+CONTAINER -> É QUASE COMO 1 REGISTRY, 1 TOOL QUE NOS AJUDA 
+                A MANAGE DEPENDENCIES E DEPENDENCY INJECTIONS...
+
+
+
+
+
+
+
+
+LARAVEL CONTAINER --> É UM DI CONTAINER,
+
+                        MAS COM STEROIDS...
+
+
+
+
+
+
+
+
+
+--> COMO VC PODE TER PERCEBIDO, TODAS ESSAS 
+
+DEPENDENCIES JÁ FORAM INJECTED PELO FRAMEWORK, NESSE CONTROLLER...
+
+
+
+
+
+
+
+
+
+
+PARA TESTAR, CRIAMOS UM TRANSACTIONSERVICE,
+
+COM ESTE CÓDIGo:
+
+
+
+
+
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+namespace App\Services;
+
+
+class TransactionService
+{
+    public function createTransaction(int $transactionId): array
+    {
+        return [
+            'transactionId' => $transactionId,
+            'amount' => 25,
+        ];
+    }
+}
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+CERTO... ISSO FEITO,
+
+
+
+USAMOS ESSE SERVICE, LÁ NO METHOD DE 'show',
+
+tipo assim:
+
+
+
+
+
+
+
+
+
+
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Http\Middleware\CheckUserRole;
+use App\Models\Transaction;
+use App\Services\TransactionService;
+use Illuminate\Http\Request;
+
+class TransactionController extends Controller
+{
+
+    public function __construct(
+        private readonly TransactionService $transactionService
+    ) {}
+
+    public function show(string $transactionId): string
+    {
+
+        $transaction = $this->transactionService->findTransaction($transactionId);
+
+        return 'Transaction: ' . $transaction['transactionId'] . ' ' . $transaction['amount'];
+    }
+
+
+
+}
+
+
+
+
+
+
+
+CERTO, E ISSO FUNCIONOU...
+
+
+
+
+
+
+
+
+
+
+COMO VC PODE TER PERCEBIDO, NÃO PRECISAMOS CRIAR 1 INSTANCE DESSA CLASS...
+
+
+ELA FOI AUTOMATICALLY RESOLVED E INJECTED, PELO FRAMEWORK...
+
+
+
+
+
+
+
+
+ISSO É PQ O LARAVEL TEM ALGO CHAMADO DE 
+
+'ZERO-CONFIGURATION RESOLUTION',
+
+
+
+QUE É BASICAMENTE AUTO-WIRING...
+
+
+
+
+
+-> O LARAVEL BASICAMENTE USA A REFLECTION API 
+    DO PHP 
+
+
+    PARA 'INSPECT THE CLASS DEPENDENCIES',
+
+    POR MEIO DO 'LOOK AT CONSTRUCTOR PARAMETERS'...
+
+
+
+
+
+
+
+
+--> SE A CLASS NÃO TEM DEPENDENCY ALGUMA, OU SE DEPENDE APENAS DE CLASSES CONCRETAS,
+    O CONTAINER VAI AUTOMATICAMENTE RESOLVE/CREATE UMA INSTANCE DAQUELA CLASS,
+
+    E ELE FAZ ISSO DE FORMA RECURSIVA... QUER DIZER QUE SE SUA CLASS TEM 
+    ALGUMAS OUTRAS CONCRETE CLASS DEPENDENCIES, ELE OLHA PARA AS DEPENDENCIES DE ESSA CLASS,
+    E ASSIM POR DIANTE...
+
+
+
+    'CONCRETE CLASS' -> É UMA CLASS QUE PODE SER INSTANTIATED, QUE NÃO É UMA INTERFACE 
+                            OU UMA ABSTRACT CLASS... CASO CONTRÁRIO, VC 
+                            FICA COM ALGUMA EXCEPTION (com interfaces e abstract classes)...
+
+
+
+
+
+
+
+
+
+ISSO QUER DIZER QUE 
+
+
+
+''WE DONT NEED 
+    TO INSTRUCT THE CONTAINER ABOUT HOW TO RESOLVE THESE 
+    CONCRETE CLASSES... YOU DON'T NEED TO ADD ENTRIES IN CONFIGURATION 
+    FILES, SET BINDINGS AND SO ON...''
+
+
+
+
+
+
+
+
+-> MAS VC TERIA DE SETTAR BINDINGS SE 
+VC TIVESSE ABSTRACT CLASSES OU INTERFACES,
+
+
+
+MAS PARA CLASSES CONCRETAS COMO ESSAS,
+
+VC NÃO PRECISA FAZER ISSO (exceto com use-cases específicos)...
+
+
+
+
+
+
+ALÉM DISSO,
+
+O LARAVEL VAI AUTOMATICALLY 
+
+INJECT E RESOLVE DEPENDENCIES EM OUTRAS PARTES DO FRAMEWORK,
+
+
+
+COMO DENTRO DOS CONTROLLER METHODS, COMO VIMOS ANTERIORMENTE...
+
+
+
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+    public function show(TransactionService $transactionService): string
+    {
+
+        $transaction = $transactionService->findTransaction($transactionId);
+
+        return 'Transaction: ' . $transaction['transactionId'] . ' ' . $transaction['amount'];
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ADICIONALMENTE,  
+
+
+
+ALÉM DE LARAVEL CONSEGUIR FAZER O AUTO-RESOLVE DE ESSAS DEPENDENCIES 
+DE DENTRO DO CONSTRUCTOR  E DOS METHODS DAS CONTROLLER CLASSES,
+
+
+
+
+
+
+ELE CONSEGUE FAZER ISSO TAMBÉM EM OUTROS LUGARES, EM OUTRAS CLASSES,
+
+COMO:
+
+
+
+
+1) the 'handle()' methods, DE SEUS __ JOBS__...
+
+
+
+2) OS MIDDLEWARES
+
+
+3) MAIS...
+
+
+
+
+
+
+
+
+
+
+
+-> QUER DIZER QUE, NA MAIOR PARTE DOS CASOS,
+    VC NEM MESMO VAI PRECISAR INTERAGIR COM O CONTAINER 
+    DIRETAMENTE PARA BIND OU RESOLVE QUALQUER COISA...
+
+
+
+
+
+
+
+
+--> MAS É CLARO QUE EXISTIRÃO CASES EM QUE VC VAI QUERER 
+'INSTRUCT THE CONTAINER ABOUT HOW TO RESOLVE CERTAIN CLASSES''...
+
+
+(por exemplo, imagine que vc gostaria de injetar uma class non-concrete,
+como uma INTERFACE OU ABSTRACT CLASS)...
+
+
+
+
+
+--> NESSES CASOS, VC VAI PRECISAR DE CONTAINER BINDINGS...
+
+
+
+
+
+
+
+
+ --> PARA FAZER ISSO, HÁ UM PROCEDIMENTO ESPECÍFICO,
+ SIMILAR AO VISTO NO CURSO DO PROFESSOR...
+
+
+
+
+
+
+
+
+ --> ISSO É FEITO DENTRO DO 'AppServiceProvider'
+
+ principal,
+
+ no caso....
+
+
+
+
+ EX:
+
+
+
+
+
+
+
+
+ No problem! In Laravel, setting container bindings is a common practice for dependency injection, and it's typically done in the service container. Laravel provides several ways to bind objects or services to the container, which can be later resolved automatically by the framework (or manually via the container itself).
+
+Common Methods for Binding in Laravel
+Here’s how you can set container bindings in Laravel:
+
+1. Binding a Class to the Container
+In Laravel, you can bind a class to the service container using the bind() method. This tells Laravel that whenever the container needs to resolve this binding, it should use the provided class.
+
+Example: Basic Binding
+php
+Copiar código
+// In a service provider (e.g., AppServiceProvider)
+public function register()
+{
+    // Bind a class to the container
+    $this->app->bind(App\Contracts\PaymentGateway::class, App\Services\StripeGateway::class);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+<?php
+
+namespace App\Providers;
+
+use Illuminate\Support\Facades\Route;
+use Illuminate\Support\ServiceProvider;
+
+class AppServiceProvider extends ServiceProvider
+{
+    /**
+     * Register any application services.
+     */
+    public function register(): void
+    {
+        // * HERE WE CAN SET UP CUSTOM CONTAINER BINDINGS, AND USE THEM IN THE CONTROLLERS.
+    }
+
+    /**
+     * Bootstrap any application services.
+     */
+    public function boot(): void
+    {
+        //
+        Route::pattern('transactionId', '[0-9]+'); // this is a constraint applied to all routes that have a parameter named 'id'
+        Route::pattern('fileId', '[0-9]+'); // this is a constraint applied to all routes that have a parameter named 'id'
+    }
+}
+ 
+
+
+
+
+
+
+
+
+
+ OK... 
+
+
+
+
+ 
+
+MAS O QUE O PROFESSOR FALA, SOBRE ISSO?
+
+
+
+
+
+
+
+
+
+
+E SE QUISERMOS FAZER INJECT DE 1 ABSTRACT CLASS,
+
+OU DE 1 INTERFACE?
+
+
+
+
+
+
+
+
+QUEREMOS DIZER AO CONTAINER 
+
+
+''HEY, SEMPRE QUE VC QUISER RESOLVE ESSA INTERFACE/ABSTRACT CLASS,
+    UTILIZE ESTA CONCRETE IMPLEMENTATION''...
+
+
+
+
+
+
+
+--> O PROFESSOR APONTA QUE PODEMOS FAZER ISSO LÁ DENTRO DO 
+    'AppServiceProvider' class,
+
+
+
+    lá no 'app>Http>Providers'...,
+
+
+    LÁ NO METHOD DE 'register()'...
+
+
+
+
+
+
+
+
+
+--> MAS ANTES DE QUALQUER OUTRA COISA, 
+
+
+    O PROFESSOR QUER NOS MOSTRAR 
+
+
+
+    ''AN EXAMPLE OF HOW WE CAN __ BIND THINGS INTO THE CONTAINER''...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> PARA ISSO, DIGAMOS QUE QUEREMOS FAZER O INJECT DE 
+
+1 PAYMENT PROCESSOR, DENTRO DO TRANSACTION CONTROLLER...
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+    public function __construct(
+        private readonly TransactionService $transactionService,
+        private readonly PaymentProcessor $paymentProcessor
+    ) {}
+
+
+
+
+
+
+
+
+
+
+
+
+COM ISSO, DIZEMOS QUE VAMOS QUERER 1 'PaymentProcessor',
+
+
+MAS NÃO INFORMAMOS ''QUAL PAYMENT PROCESSOR USAR''...
+
+
+
+
+
+
+
+
+
+--> PODEMOS TER MÚLTIPLOS PAYMENT PROCESSORS,
+    COMO STRIPE E PAYPAL,
+
+    COISAS ASSIM....
+
+    TER 1 INTERFACE, AQUI,
+    NOS PERMITE 
+    RAPIDAMENTE TROCAR AS CONCRETE IMPLEMENTATIONS,
+
+    SEM AFETAR O UNDERLYING CODE...
+
+
+
+
+
+
+
+
+-> PARA ISSO, 
+
+O PROFESSOR CRIA 1 INTERFACE,
+
+NO FOLDER DE 'Contracts',
+
+
+dentro de 'app'...
+
+
+
+
+
+
+
+
+
+
+-> AÍ DEFINIMOS A INTERFACE ASSIM:
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+namespace App\Contracts;
+
+interface PaymentProcessor
+{
+    public function process(array $transaction): void;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+ELE VAI ACEITAR UM PARAMETER DE transaction,
+
+que será um assoc array...
+
+
+
+
+
+
+
+
+
+
+
+--> MAS SE TENTAMOS USAR ISSO AGORA,
+
+SEM FAZER MAIS NADA, FICAMOS COM 1 ERROR, IMEDIATAMENTE..
+
+
+
+
+
+
+ESSE ERROR ACONTECERÁ PQ 
+
+
+''PaymentProcessor IS  AN INTERFACE,
+AND NOT AN INSTANTIABLE CLASS''.. 
+
+
+
+
+
+
+-> O ERROR QUE OBTEMOS É 
+
+
+'is not instantiable while building'...
+
+
+
+
+
+
+
+
+
+
+
+--> PARA BINDAR ISSO A 1 CONCRETE IMPLEMENTATION, ESPECÍFICA,
+
+
+
+    PRECISAMOS ABRIR O 'AppServiceProvider'
+
+    e bindar isso, no container, com o 'register()'...
+
+
+
+
+
+
+
+
+
+
+--> PARA ISSO, PODEMOS ESCREVER o method de 'bind()',
+
+DENTRO 
+
+
+DO 'register()',
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+<?php
+
+namespace App\Providers;
+
+use Illuminate\Support\Facades\Route;
+use Illuminate\Support\ServiceProvider;
+
+class AppServiceProvider extends ServiceProvider
+{
+    /**
+     * Register any application services.
+     */
+    public function register(): void
+    {
+        // * HERE WE CAN SET UP CUSTOM CONTAINER BINDINGS, AND USE THEM IN THE CONTROLLERS.
+        $this->app->bind('App\Contracts\PaymentProcessor', function () {
+            return new \App\Services\PaymentProcessor();
+        });
+    }
+
+    /**
+     * Bootstrap any application services.
+     */
+    public function boot(): void
+    {
+        //
+        Route::pattern('transactionId', '[0-9]+'); // this is a constraint applied to all routes that have a parameter named 'id'
+        Route::pattern('fileId', '[0-9]+'); // this is a constraint applied to all routes that have a parameter named 'id'
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+E ISSO REALMENTE FUNCIONA...
+
+
+
+
+
+
+
+
+AÍ, LÁ NA INTERFACE:
+
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+namespace App\Contracts;
+
+interface PaymentProcessorInterface
+{
+    public function process(array $transaction): void;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+NO PAYMENTPROCESSOR:
+
+
+
+
+
+
+
+
+
+<?php
+
+namespace App\Services;
+
+use App\Contracts\PaymentProcessorInterface;
+
+class PaymentProcessor implements PaymentProcessorInterface
+{
+    public function process(array $transaction): void
+    {
+        // this is a dummy implementation, it will be replaced by the real implementation
+        echo 'Payment Processor Processed Transaction: ' . $transaction['transactionId'] . ' ' . $transaction['amount'];
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+NO 'AppServiceProvider':
+
+
+
+
+
+
+<?php
+
+namespace App\Providers;
+
+use Illuminate\Support\Facades\Route;
+use Illuminate\Support\ServiceProvider;
+
+class AppServiceProvider extends ServiceProvider
+{
+    /**
+     * Register any application services.
+     */
+    public function register(): void
+    {
+        // * HERE WE CAN SET UP CUSTOM CONTAINER BINDINGS, AND USE THEM IN THE CONTROLLERS.
+        $this->app->bind('App\Contracts\PaymentProcessor', function () {
+            return new \App\Services\PaymentProcessor();
+        });
+    }
+
+    /**
+     * Bootstrap any application services.
+     */
+    public function boot(): void
+    {
+        //
+        Route::pattern('transactionId', '[0-9]+'); // this is a constraint applied to all routes that have a parameter named 'id'
+        Route::pattern('fileId', '[0-9]+'); // this is a constraint applied to all routes that have a parameter named 'id'
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+É MELHOR DAR 1 INSTANCE DE 'Stripe',
+
+QUE SERÁ 1 CLASS EM 'Services'...
+
+
+
+
+
+<?php
+
+namespace App\Services;
+
+use App\Contracts\PaymentProcessorInterface;
+
+class Stripe implements PaymentProcessorInterface
+{
+    public function process(array $transaction): void
+    {
+        // this is a dummy implementation, it will be replaced by the real implementation
+        echo 'Stripe Processed Transaction: ' . $transaction['transactionId'] . ' ' . $transaction['amount'];
+    }
+}
+
+
+
+
+
+
+
+
+
+-> SE BINDAMOS ESSA CLASS E RECARREGAMOS A PÁGINA, FUNCIONA SEM PROBLEMAS...
+
+
+
+
+
+
+
+
+-> HÁ OUTROS METHODS ÚTEIS DISPONÍVEIS DENTRO DA CONTAINER INSTANCE...
+
+
+--> VC PODE BINDAR SINGLE INSTANCES, USANDO 
+    SINGLETON (faz com que a class seja resolved apenas 1 única vez,
+    
+    e aí continua usando esse object, mesmo quando é required seu instantiate mais tarde...  )
+
+
+
+
+
+
+--> HÁ DIFERENTES TIPOS DE BINDINGS, MAS ESSE É O MAIS COMUM E SIMPLES...
+
+
+
+
+
+
+
+
+
+
+
+-> MAS SE O QUE PRECISAMOS FAZER É ESSE BIND SIMPLES,
+
+
+    HÁ 1 MANEIRA MAIS FÁCIL DE FAZER ISSO, EM VEZ DE TER DE CHAMAR 
+
+
+    $this->app->bind(PaymentProcessorInterface::class, Stripe::class)...
+
+
+
+
+
+
+
+
+
+-> SE VC QUER FAZER ESSA MANEIRA MAIS FÁCIL, 
+
+    BASTA ESCREVER 1 PROPRIEDADE PUBLIC DE '$bindings',
+
+
+    e aí 
+
+
+    DEFINIR 1 ASSOC ARRAY,
+
+
+    COM OS BINDS...
+
+
+    TIPO ASSIM:
+
+
+
+
+
+
+<?php
+
+namespace App\Providers;
+
+use App\Contracts\PaymentProcessorInterface;
+use Illuminate\Support\Facades\Route;
+use Illuminate\Support\ServiceProvider;
+
+class AppServiceProvider extends ServiceProvider
+{
+    // * Same thing as setting the binding in register, but with a shorthand:
+    // public $bindings = [
+    //     PaymentProcessorInterface::class => \App\Services\Stripe::class,
+    // ];
+
+
+    /**
+     * Register any application services.
+     */
+    public function register(): void
+    {
+        // * HERE WE CAN SET UP CUSTOM CONTAINER BINDINGS, AND USE THEM IN THE CONTROLLERS.
+        $this->app->bind('App\Contracts\PaymentProcessorInterface', function () {
+            return new \App\Services\Stripe();
+        });
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+    // * Same thing as setting the binding in register, but with a shorthand:
+     public $bindings = [
+        PaymentProcessorInterface::class => \App\Services\Stripe::class,
+     ];
+
+
+
+
+
+
+
+
+
+
+
+
+-> MAS EXISTIRÃO CASES EM QUE VC NÃO VAI PODER USAR 1 BINDING SIMPLES....
+
+
+
+
+--> NESSES CASES, VC TALVEZ QUEIRA PASSAR ALGO PARA DENTRO DO CONSTRUCTOR 
+     DA SUA IMPLEMENTAÇÃO... TALVEZ ALGUMA CONFIGURATION, OU UMA API KEY,
+     OU ALGUM TOKEN,
+     OU ALGO ASSIM...
+
+    
+
+
+
+--> EM CASOS COMO ESSES, A SOLUÇÃO É 
+    USAR UMA __ CLOSURE__ DENTRO DO 
+
+    METHOD DE 
+
+
+
+    $this->app->bind(
+
+    ),
+
+
+
+    TIPO ASSIM:
+
+
+
+        // * HERE WE CAN SET UP CUSTOM CONTAINER BINDINGS, AND USE THEM IN THE CONTROLLERS.
+        $this->app->bind('App\Contracts\PaymentProcessorInterface', function () {
+            return new \App\Services\Stripe();
+        });
+
+
+
+
+    
+
+
+
+
+-> OK... AÍ, DENTRO DESSE   'new Stripe()',
+
+
+
+PODEMOS PASSAR PARAMETERS ESPECÍFICOS, DEPENDENCIES ESPECÍFICAS...
+
+
+
+
+
+
+
+
+
+
+DIGAMOS QUE O 'Stripe' FAZ O ACCEPT DE 1 ARRAY,
+
+CHAMADO DE '$config',
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+<?php
+
+namespace App\Services;
+
+use App\Contracts\PaymentProcessorInterface;
+
+class Stripe implements PaymentProcessorInterface
+{
+
+    public function __construct(private array $config) {}
+
+
+    public function process(array $transaction): void
+    {
+        // this is a dummy implementation, it will be replaced by the real implementation
+        echo 'Stripe Processed Transaction: ' . $transaction['transactionId'] . ' ' . $transaction['amount'];
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... 
+
+
+
+
+
+
+ISSO FEITO,
+
+
+
+
+
+
+VOLTAMOS À CLOSURE, à FUNCTION,
+
+
+E AÍ PODEMOS PASSAR UNS DUMMY VALUES,
+
+PARA DEMONSTRAR:
+
+
+
+
+
+
+
+    /**
+     * Register any application services.
+     */
+    public function register(): void
+    {
+        // * HERE WE CAN SET UP CUSTOM CONTAINER BINDINGS, AND USE THEM IN THE CONTROLLERS.
+        $this->app->bind('App\Contracts\PaymentProcessorInterface', function () {
+            return new \App\Services\Stripe([
+                'dummy_key' => 'dummy_value',
+            ]);
+        });
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... 
+
+
+
+MAS DIGAMOS QUE TEMOS OUTRA DEPENDENCY ALI...
+
+
+
+
+como um '$salesTaxCalculator()'
+
+
+
+
+
+
+
+-> É CLARO QUE ISSO VAI FALHAR,
+PQ PRECISAMOS PASSAR ESSE OBJECT PARA DENTRO... TIPO ASSIM:
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+namespace App\Services;
+
+class SalesTaxCalculator
+{
+    public function calculate(float $amount): float
+    {
+        return $amount * 0.1;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+AÍ ASSIM:
+
+
+
+
+
+<?php
+
+namespace App\Services;
+
+use App\Contracts\PaymentProcessorInterface;
+
+class Stripe implements PaymentProcessorInterface
+{
+
+    public function __construct(private array $config, private SalesTaxCalculator $salesTaxCalculator) {}
+
+
+    public function process(array $transaction): void
+    {
+        // this is a dummy implementation, it will be replaced by the real implementation
+        echo 'Stripe Processed Transaction: ' . $transaction['transactionId'] . ' ' . $transaction['amount'];
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+E AÍ ASSIM:
+
+
+
+
+
+
+
+
+
+    /**
+     * Register any application services.
+     */
+    public function register(): void
+    {
+        // * HERE WE CAN SET UP CUSTOM CONTAINER BINDINGS, AND USE THEM IN THE CONTROLLERS.
+        $this->app->bind('App\Contracts\PaymentProcessorInterface', function () {
+            return new \App\Services\Stripe(
+                [
+                    'dummy_key' => 'dummy_value',
+                ],
+                new \App\Services\SalesTaxCalculator()
+            );
+        });
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+MAS É CLARO QUE ISSO PODE LEVAR A COMPLICAÇÕES...
+
+PODE FICAR CUMBERSOME... DIGAMOS QUE 
+
+
+
+A PRÓPRIA 'SalesTaxCalculator' tem dependencies... aí vc precisaria 
+fazer resolve delas também,
+ e aí criaria 1 ciclo vicioso....
+
+
+
+
+
+
+
+
+--> A SOLUÇÃO, NO CASO, 
+    DIZ O PROFESSOR,
+
+
+    É FAZER O RESOLVE DO 'SalesTaxCalculator'
+
+
+    DE DENTRO DO CONTAINER...
+
+
+
+
+
+
+
+-> A SOLUÇÃO ENVOLVE USAR O '$app',
+
+que contém o CONTAINER,
+
+
+
+
+    para pegar essa class específica,
+    com suas dependencies,
+
+    USANDO O METHOD DE '->make()"...
+
+
+
+ 
+
+
+
+
+
+-> ISSO É POSSÍVEL JUSTAMENTE PQ O '$app' (Application)
+FAZ O EXTEND DO CONTAINER EM SI...
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+        $this->app->bind('App\Contracts\PaymentProcessorInterface', function (Application $app) {
+            return new \App\Services\Stripe(
+                [
+                    'dummy_key' => 'dummy_value',
+                ],
+                $app->make('App\Services\SalesTaxCalculator')
+            );
+        });
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... ISSO FAZ TOTAL SENTIDO...
+
+
+
+
+
+
+
+COM ISSO, SE ESSA CLASS DE 'SalesTaxCalculator'
+
+
+TIVER OUTRAS DEPENDENCIES,
+
+
+
+
+ELAS SERÃO RESOLVED AUTOMATICAMENTE TAMBÉM...
+
+
+
+
+
+
+
+
+
+
+
+--> e, na verdade,
+
+podemos até mesmo usar o method de '$app->make()'
+
+
+
+DIRETAMENTE PARA CRIAR A CLASS DE 'Stripe',
+
+SEM FAZER MAIS COISA ALGUMA... E ISSO JÁ VAI RESOLVE TUDO AUTOMÁTICO...
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+       // * Best way, because our class and all its dependencies are resolved automatically, with recursion.
+        $this->app->bind('App\Contracts\PaymentProcessorInterface', function (Application $app) {
+            return $app->make(Stripe::class);
+        });
+
+
+
+
+
+
+
+
+
+certo... mas ficamos com 1 problema,
+
+aqui... ficamos com 1 error... 
+
+
+
+pq 
+
+o 
+
+'new Stripe()'
+
+
+NÃO ESTÁ PASSANDO O PARAMETER DE array, que era o '$config',
+
+que tínhamos no constructor dele:
+
+
+
+
+
+
+
+<?php
+
+namespace App\Services;
+
+use App\Contracts\PaymentProcessorInterface;
+
+class Stripe implements PaymentProcessorInterface
+{
+
+    public function __construct(private array $config, private SalesTaxCalculator $salesTaxCalculator) {}
+
+
+    public function process(array $transaction): void
+    {
+        // this is a dummy implementation, it will be replaced by the real implementation
+        echo 'Stripe Processed Transaction: ' . $transaction['transactionId'] . ' ' . $transaction['amount'];
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+--> PARA CONSERTAR ISSO, DEVEMOS PASSAR 1 LISTA DE KEY-VALUE PAIRS 
+
+
+QUE DEVERÃO SER USADOS COMO PARAMETERS...
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+        // * Best way, because our class and all its dependencies are resolved, considering that parameters are passed down with the assoc array.
+        $this->app->bind('App\Contracts\PaymentProcessorInterface', function (Application $app) {
+            return $app->make(Stripe::class, [
+                'config' => [
+                    'dummy_key' => 'dummy_value',
+                ]
+            ]);
+        });
+
+
+
+
+
+
+
+
+
+
+
+
+--> CERTO... MAS, EM ALGUNS CASES, VC TALVEZ NÃO TENHA ACESSO 
+
+AO OBJECT 
+
+
+de 'Application $app' 
+DIRETAMENTE,
+
+
+COMO PODEMOS ACESSAR AQUI...
+
+
+
+
+
+
+
+
+
+
+-> OU SEJA,
+
+VC TALVEZ PRECISE ACESSAR ALGUMA CLASS, 
+EM ALGUM OUTRO LUGAR DE SEU APP,
+
+QUE NÃO SEJA 'AppServiceProvider'...
+
+
+
+
+
+
+
+
+-> EM CASOS COMO ESSES,
+    VC PODERÁ USAR A Facade de 
+
+    'App',
+
+
+    ou 
+
+    a helper function de 'app()',
+
+
+
+
+    PARA __ OBTER A APPLICATION INSTANCE EM SI,
+
+    E PARA AÍ ACESSAR A CLASS QUE VC QUER...
+
+
+
+
+
+
+
+
+
+
+
+
+
+POR EXEMPLO, 
+
+
+LÁ NO TransactionController,
+
+
+
+
+TEMOS ESTE CÓDIGO:
+
+
+
+
+
+
+
+
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Contracts\PaymentProcessorInterface;
+use App\Http\Middleware\CheckUserRole;
+use App\Models\Transaction;
+use App\Services\TransactionService;
+use Illuminate\Http\Request;
+
+class TransactionController extends Controller
+{
+
+    public function __construct(
+        private readonly TransactionService $transactionService,
+        private readonly PaymentProcessorInterface $paymentProcessor
+    ) {}
+
+    /**
+     * Display a listing of the resource.
+     */
+    public function index(Request $request)
+    {
+        echo $request->headers->get('X-Request-Id'); // this will return the value of the header 'X-Request-Id'
+        echo route('transactions.home') . '<br />'; // this will return the built url for the route 'transactions.home', in this case, 'localhost/transactions'
+
+        echo route('transaction', ['transactionId' => 55]) . '<br />'; // this will return the built url for the route 'transactions.show', in this case, 'localhost/transactions/55'
+
+
+        // * THIS WILL REDIRECT THE USER to the specified named route.
+        to_route('transactions.create'); // this will return the built url for the route 'transactions.home', in this case, 'localhost/transactions'
+
+
+
+        return view('transactions.index');
+    }
+
+    /**
+     * Display the specified resource.
+     */
+    public function show(string $transactionId): string
+    {
+
+        $transaction = $this->transactionService->findTransaction($transactionId);
+
+        return 'Transaction: ' . $transaction['transactionId'] . ' ' . $transaction['amount'];
+    }
+
+    // public function show(Transaction $transaction)
+    // {
+    //     return 'Transaction ' . $transaction->id;
+    // }
+
+    /**
+     * Show the form for creating a new resource.
+     */
+    public function create(): string
+    {
+        return 'Form to create a transaction';
+    }
+
+
+    /**
+     * Store a newly created resource in storage.
+     */
+    public function store(Request $request): string
+    {
+        return 'Transaction Created';
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     */
+    public function edit(Transaction $transaction)
+    {
+        //
+    }
+
+
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(Request $request, Transaction $transaction)
+    {
+        //
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(Transaction $transaction)
+    {
+        //
+    }
+
+}
+
+
+
+
+
+
+
+
+
+-> NESSE CONTROLLER, O LARAVEL JÁ FAZ 
+
+O RESOLVE AUTOMÁTICO DOS CONSTRUCTOR DEPENDENCIES 
+
+E METHOD DEPENDENCIES....
+
+
+
+
+MAS DIGAMOS QUE VC QUER FAZER O RESOLVE DE 1 DEPENDENCY 
+
+EM 1 LUGAR DIFERENTE DO CONSTRUCTOR E DOS METHODS,
+
+POR QUALQUER RAZÃO... COMO VC FARIA?
+
+
+
+
+
+
+
+
+
+
+-> NESSES CASOS, VC USARIA A FACADE OU HELPER DE 
+'App',
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+    /**
+     * Display a listing of the resource.
+     */
+    public function index(Request $request)
+    {
+
+        app(); // EIS O CÓDIGO EM QUESTÃO.
+
+        return view('transactions.index');
+    }
+
+
+
+
+
+
+
+
+
+
+
+'app()' --> ISSO RETORNA UMA INSTANCE DO _ CONTAINER__...
+
+
+
+
+
+INSTANCE DO CONTAINER --> É BASICAMENTE NOSSA APPLICATION INSTANCE INTEIRA...
+
+
+
+
+
+
+
+
+
+
+--> e se usarmos 'app()->make()',
+    ISSO FAZ ESSENCIALMENTE A MESMA COISA...
+
+
+
+
+
+
+
+
+
+
+--> PODEMOS ESCREVER ALGO COMO 
+
+
+'app()->make(PaymentProcessor::class)',
+
+
+
+
+QUE ISSO VAI REALMENTE INSTANTIATE ESSA CLASS...
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+    public function index(Request $request)
+    {
+        app()->make(PaymentProcessorInterface::class); // with this, the 'app()' helper function, along with 'make', we can instantiate any class that is bound to the container/our app.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+O PROFESSOR MOSTRA A VERSÃO SINGLETON DE ESSE PATTERN,
+
+
+
+
+
+
+
+que é acessado com o uso do method  '$this->app->singleton()',
+
+
+em vez de 
+
+'$this->app->bind()'...
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+        // * Best way, because our class and all its dependencies are resolved, considering that parameters are passed down with the assoc array.
+        $this->app->singleton('App\Contracts\PaymentProcessorInterface', function (Application $app) {
+            return $app->make(Stripe::class, [
+                'config' => [
+                    'dummy_key' => 'dummy_value',
+                ]
+            ]);
+        });
+
+
+
+
+
+
+
+
+
+
+
+E ISSO REALMENTE FUNCIONA, 
+
+FICAMOS COM APENAS 1 OBJECT DAQUELA CLASS,
+DURANTE TODO O RUNTIME DE NOSSO APP,
+
+até mesmo quando tentamos acessá-lo/instantiate ele múltiplas vezes...
+
+
+
+
+
+
+
+
+
+
+
+
+A OUTRA COISA QUE O PROFESSOR QUERIA NOS MOSTRAR 
+
+
+É 
+
+
+A FACADE DE 'App',
+
+QUE PODE 
+
+
+SER USADA 
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+    public function index(Request $request)
+    {
+
+        // app()->make(PaymentProcessorInterface::class); // * with this, the 'app()' helper function, along with 'make', we can instantiate any class that is bound to the container/our app.
+        // App::make(PaymentProcessorInterface::class); // * this is the same as what's seen above, but with the App Facade.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> temos outra maneira de resolve a class...
+
+essa maneira é com o uso da helper function 'resolve()',
+
+
+tipo 
+
+
+
+
+''resolve(PaymentProcessorInterface::class)''
+
+
+
+
+
+
+
+OUTRA MANEIRA É ESCREVER
+
+
+app(PaymentProcessorInterface::class)
+
+
+
+
+
+OU 
+
+
+ESCREVER 
+
+
+App::make(PaymentProcessorInterface)...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+OUTRA MANEIRA DE FAZER RESOLVE DE DEPENDENCIES É POR MEIO DO INJECT 
+
+DA CONTAINER INSTANCE 
+
+
+
+DIRETAMENTE EM 1 CONSTRUCTOR/METHOD,
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+class TransactionController {
+
+
+
+    public function __construct(
+        private readonly TransactionService $transactionService,
+        private readonly PaymentProcessorInterface $paymentProcessor,
+        private readonly Container $container
+    ) {}
+
+
+    public function index(): string 
+    {
+        $this->container->make(PaymentProcessorInterface);
+
+        return 'Transactions Page';
+    }
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> ESSA MANEIRA FUNCIONA, MAS É MEIO FEIA...
+
+
+
+
+
+
+
+
+
+
+
+
+-> QUER DIZER QUE TEMOS MTAS MANEIRAS DIFERENTES 
+
+    POSSÍVEIS 
+
+    PARA 
+
+    FAZER 'RESOLVE DEPENDENCIES',
+
+    usando 
+
+    o container do laravel... e essa é uma 
+
+    das melhores coisas do laravel,
+
+    mtas opções e várias maneiras de solucionar problemas...
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... AGORA SABEMOS COMO USAR LARAVEL SERVICE CONTAINER...
+
+
+
+
+
+
+
+
+LARAVEL SERVICE CONTAINER --> TEMOS MTAS COISAS 
+                                QUE PODEMOS FAZER COM ELE...
+
+
+
+
+
+
+
+                        COISAS COMO ALIAS,
+
+                        ALIASAR UMA STRING A 1 CONCRETE CLASS,
+
+                        E AÍ RESOLVER ISSO DO CONTAINER, USANDO O STRING TEXT,
+                        EM VEZ DE 1 CLASS NAME...
+
+
+
+                        TAMBÉM CONTEXTUAL BINDING --> DEFINIR RULES COMO 
+
+                                                    ''IF THE PAYMENT PROCESSOR 
+                                                    IS INJECTED INTO THE TRANSACTION 
+                                                    CONTROLLER CLASS,
+                                                    RESOLVE IT USING STRIPE,
+                                                    OTHERWISE RESOLVE USING ANOTHER 
+                                                    IMPLEMENTATION AND ETC''...
+
+
+
+
+
+
+                        também OUTRA FEATURE É QUE 
+
+                        ''YOU ARE ABLE TO SWAP OUT ANY OF LARAVEL'S IMPLEMENTATION 
+                        WITH YOUR OWN IMPLEMENTATION'.... 
+
+
+                        é por isso que é tão bom,
+                        vc pode trocar qualquer das classes laravel com suas próprias 
+                        classes...

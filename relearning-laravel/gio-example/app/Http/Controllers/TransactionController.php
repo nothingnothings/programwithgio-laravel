@@ -2,16 +2,29 @@
 
 namespace App\Http\Controllers;
 
+use App\Contracts\PaymentProcessorInterface;
+use App\Http\Middleware\CheckUserRole;
 use App\Models\Transaction;
+use App\Services\TransactionService;
 use Illuminate\Http\Request;
 
 class TransactionController extends Controller
 {
+
+    public function __construct(
+        private readonly TransactionService $transactionService,
+        private readonly PaymentProcessorInterface $paymentProcessor
+    ) {}
+
     /**
      * Display a listing of the resource.
      */
     public function index(Request $request)
     {
+
+        // app()->make(PaymentProcessorInterface::class); // * with this, the 'app()' helper function, along with 'make', we can instantiate any class that is bound to the container/our app.
+        // App::make(PaymentProcessorInterface::class); // * this is the same as what's seen above, but with the App Facade.
+
         echo $request->headers->get('X-Request-Id'); // this will return the value of the header 'X-Request-Id'
         echo route('transactions.home') . '<br />'; // this will return the built url for the route 'transactions.home', in this case, 'localhost/transactions'
 
@@ -31,7 +44,10 @@ class TransactionController extends Controller
      */
     public function show(string $transactionId): string
     {
-        return 'Transaction ' . $transactionId;
+
+        $transaction = $this->transactionService->findTransaction($transactionId);
+
+        return 'Transaction: ' . $transaction['transactionId'] . ' ' . $transaction['amount'];
     }
 
     // public function show(Transaction $transaction)
@@ -81,10 +97,10 @@ class TransactionController extends Controller
         //
     }
 
-    public static function middleware()
-    {
-        return [
-
-        ]
-    }
+    // public static function middleware()
+    // {
+    //     return [
+    //         CheckUserRole::class,
+    //     ];
+    // }
 }
