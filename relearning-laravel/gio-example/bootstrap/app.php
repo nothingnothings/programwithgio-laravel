@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\AssignRequestIdMiddleware;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -18,6 +19,22 @@ return Application::configure(basePath: dirname(__DIR__))
         // }
     )
     ->withMiddleware(function (Middleware $middleware) {
+
+        // * Use this method if you want to modify the web middlewares seen in 'getMiddlewareGroups()' in 'Middleware.php'.
+        // $middleware->web(); // * arguments are arrays: prepend, append, remove, replace.
+
+        $middleware->web(
+            // append: [AssignRequestIdMiddleware::class],
+            // prepend: [AssignRequestIdMiddleware::class],
+            // replace: [EncryptCookies::class => YourEncryptionMiddleware::class], // replace one of the default web middlewares
+            // remove: [VerifyCsrfToken::class], // remove one of the default web middlewares
+        );
+
+        // * we can use this method with the names of the groups of middlewares, or the middleware group itself. You can also use this with the default 'web' and 'api' middleware groups.
+        // $middleware->appendToGroup([CheckUserRole::class, SomeOtherMiddleware::class]);
+        // $middleware->prependToGroup([CheckUserRole::class, SomeOtherMiddleware::class]);
+
+
 
         // $middleware->use([]); // This is used if you want to disable the global middlewares.
 

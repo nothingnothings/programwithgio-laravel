@@ -80,4 +80,11 @@ class TransactionController extends Controller
     {
         //
     }
+
+    public static function middleware()
+    {
+        return [
+
+        ]
+    }
 }

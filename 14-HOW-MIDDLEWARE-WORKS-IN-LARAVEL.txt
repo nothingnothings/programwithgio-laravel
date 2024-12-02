@@ -1980,3 +1980,2234 @@ PODEMOS PASSAR OU 1 ÚNICO MIDDLEWARE, OU 1 LISTA DE MIDDLEWRES, AQUI...
 
 
 CRIAMOS ESSE MIDDLEWARE COM php artisan make:middleware 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... ASSUMIMOS QUE O USER ESTÁ LOGGED IN,
+
+E AÍ 
+
+
+ARMAZENAMOS A INFO EM 1 VARIABLE,
+
+
+COMO '''
+
+
+$user = ['id' => 123, 'name' => 'Gio', 'role' => 'admin'];
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+
+<?php
+
+namespace App\Http\Middleware;
+
+use Closure;
+use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
+
+class CheckUserRole
+{
+    /**
+     * Handle an incoming request.
+     *
+     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     */
+    public function handle(Request $request, Closure $next): Response
+    {
+
+        $user = ['id' => 123, 'name' => 'Gio', 'role' => 'admin'];
+
+
+        return $next($request);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+AÍ PODEMOS ADICIONAR ISSO COMO HEADER NO REQUEST...
+
+
+
+
+
+
+--> MAS, ANTES DISSO, CHECAMOS SE O USER ROLE É 'admin',
+
+
+e aí 
+
+
+RETORNAR o '$next($request)',
+
+
+
+
+PARA QUE O REQUEST PROSSIGA NORMALMENTE..
+
+
+
+CASO CONTRÁRIO, QUEREMOS GERAR 1 NOVA RESPONSE, COM 1 
+NOVO STATUS,
+
+COMO '404' OU '403' (unauthorized)...
+
+
+
+
+
+
+
+
+
+tipo assim:
+
+
+
+
+
+<?php
+
+namespace App\Http\Middleware;
+
+use Closure;
+use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
+
+class CheckUserRole
+{
+    /**
+     * Handle an incoming request.
+     *
+     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     */
+    public function handle(Request $request, Closure $next): Response
+    {
+
+        $user = ['id' => 123, 'name' => 'Gio', 'role' => 'admin'];
+
+        if ($user['role'] === 'admin') {
+            return $next($request);
+        }
+
+        return response(status: 404);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+ESSE É UM AUTH BÁSICO...
+
+
+
+
+
+
+
+
+
+
+REDIRECIONAR O USER À HOME PAGE É A COMMON WAY 
+
+
+DE TER 1 AUTH GUARD NO APP...
+
+
+
+
+
+
+
+
+--> MAS O PROFESSOR NÃO GOSTA DESSE APPROACH POR ALGUMAS RAZOES:
+
+
+
+
+1) SE O USER TENTOU ENTRAR EM 1 PAGE A QUE ELE N TEM AUTORIZAÇÃO 
+    E É REDIRECIONADO, O USER PODE 
+
+    ADIVINHAR QUE ''BEM, PARECE QUE ESSA PAGE EXISTE,  MAS ESTOU SENDO REDIRECIONADO 
+                        POR CONTA DA FALTA DE AUTH... POSSO EXPLOITAR ISSO...''
+
+
+        e esse 'guess' pode não ser ok, dependendo do app...
+
+        E VC ENVIAR UM STATUS CODE DE '403' BASICAMENTE 
+        DIZ 
+
+        ''HEY, ESSA PÁGINA EXISTE, MAS É UMA __ HIDDEN PAGE,
+        QUE APENAS CERTOS USERS PODEM ACESSAR''....
+
+
+
+        --> JÁ SE VC USAR UM STATUS CODE DE 404,
+            ISSO DIZ AO USER QUE A PAGE NÃO EXISTE,
+            O QUE É MAIS SEGURO, SE VC CONSIDERAR 
+            O EXPOSTO ACIMA...
+
+
+
+
+
+--> AQUI, O PROFESSOR FAZ 
+
+O GENERATE DE UMA RESPONSE COM STATUS DE 404... (com 'response(status:404)'),
+
+mas
+
+vc também poderia fazer throw 
+
+da exception de 'HttpNotFoundException',
+
+do laravel,
+
+
+que é mais 'smooth'...
+
+
+
+
+
+--> com a exception, o exception handler do 
+    laravel faz handle da página de 404,
+
+    o que acaba deixando mais SMOOTH o error handling...
+
+
+
+
+
+
+
+
+--> vc pode fazer isso OU COM:
+
+
+throw new HttpException(404, 'Custom Not Found Message');
+
+
+
+
+OU COM:
+
+
+        abort(404, 'This page does not exist.');
+
+
+
+
+
+
+
+
+
+
+
+FICOU TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+<?php
+
+namespace App\Http\Middleware;
+
+use Closure;
+use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
+
+// Basic check for user authorization in your app.
+class CheckUserRole
+{
+    /**
+     * Handle an incoming request.
+     *
+     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     */
+    public function handle(Request $request, Closure $next): Response
+    {
+
+        $user = ['id' => 123, 'name' => 'Gio', 'role' => 'admin'];
+
+        if ($user['role'] === 'admin') {
+            return $next($request);
+        }
+
+        // ! This way is uglier than the NotFoundException approach, because it doesn't use laravel's exception handler to render the 404 page.
+        // return response(status: 404); // this is better than saying '403', because then we don't give the user the info that the page that he was blocked from exists (we only say: 'this page does not exist', which is a lie, but is fine)
+
+        abort(404, 'This page does not exist.'); // * this is essentially the same as a throw new NotFoundHttpException(404, 'This page does not exist.')
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+MAIS TARDE VEREMOS PROPER AUTHENTICATION E USER ROLE CHECKING...
+
+
+
+
+
+ 
+
+
+
+
+
+
+
+ --> o 'abort()'
+
+
+ PEDE QUE VC PASSE O STATUS CODE da sua response...
+
+
+
+
+
+
+
+
+
+
+ --> O CÓDIGO DE ABORT É BEM SIMPLES:
+
+
+
+
+    public function abort($code, $message = '', array $headers = [])
+    {
+        if ($code == 404) {
+            throw new NotFoundHttpException($message, null, 0, $headers);
+        }
+
+        throw new HttpException($code, $message, null, $headers);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... COM ISSO, FICAMOS COM A PAGE DE 404 COMUM DO LARAVEL...
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... MAS AGORA, NO CASO,
+
+E SE QUEREMOS TER 
+
+MÚLTIPLAS ROUTES,
+
+
+ADMIN-SPECIFIC?
+
+
+
+
+
+
+
+
+
+
+
+-> É CLARO QUE VC PODERIA ADICIONAR ESSE MIDDLEWARE A CADA UMA DAS ROUTES,
+
+
+TIPO ASSIM:
+
+
+
+
+
+// Example of route-specific middleware (auth guards).
+Route::get('/administration', function () {
+    return 'Some Secret Admin Page';
+})->middleware(CheckUserRole::class); // * this is the middleware that checks if the user is an admin.
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> MAS SERIA 1 SACO TER DE ADICIONAR ESSE MIDDLEWARE DE '->middleware(CheckUserRole:class)'
+
+
+
+EM CADA 1 DE SUAS ADMIN-SPECIFIC ROUTES...
+
+
+
+
+
+
+
+
+
+
+-> É NESSES CASOS QUE 'Route::group()'
+
+
+É BEM ÚTIL...
+
+
+
+
+
+
+
+
+--> PARA DEMONSTRAR, ADICIONAMOS UMA NOVA ROUTE,
+
+E AÍ AGRUPAMOS ISSO, COM 'Route::group()',
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+Route::group(
+    function () {
+        Route::get('/administration', function () {
+            return 'Some Secret Admin Page';
+        });
+        Route::get('/administration/other', function () {
+            return 'Another Secret Admin Page';
+        });
+    }
+)->middleware(CheckUserRole::class);
+
+
+
+
+
+
+
+
+
+
+
+
+
+PODEMOS, AINDA, USAR 'Route::prefix()' 
+
+com isso 
+
+
+tudo, para ficar ainda mais chique...
+
+
+
+
+
+EX:
+
+
+
+
+
+
+// * Even better usage of group, to have a single call of '->middleware()', and then 'prefix', to implicitly set 'administration' prefix)
+Route::prefix('/administration')->middleware(CheckUserRole::class)->group(
+    function () {
+        Route::get('/', function () {
+            return 'Some Secret Admin Page';
+        });
+        Route::get('/other', function () {
+            return 'Another Secret Admin Page';
+        });
+    }
+);
+
+
+
+
+
+
+
+
+
+
+
+CERTO... 
+
+
+E ISSO REALMENTE FUNCIONA...
+
+
+
+
+
+
+
+
+
+--> HÁ OUTRA MANEIRA DE APLICAR O MIDDLEWARE A 1 GRUPO DE ROUTES...
+
+
+
+
+
+
+
+
+
+
+--> A OUTRA MANEIRA É ESCREVER ASSIM:
+
+
+Route::middleware(CheckUserRole::class)->group(
+    function() {
+        Route::get('/', function () {
+            return 'Some Secret Admin Page';
+        });
+        Route::get('/other', function () {
+            return 'Another Secret Admin Page';
+        });
+    }
+);
+
+
+
+
+
+
+
+
+
+
+
+ESSA SINTAXE DEVE SER UTILIZADA SE VC NÃO QUER ADICIONAR 
+1 PREFIX A SUAS ROUTES...
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+faz sentido...
+
+
+
+
+
+
+também pode escrever o prefix assim:
+
+
+
+
+
+Route::middleware(CheckUserRole::class)->prefix('/administration')->group(
+    function() {
+        Route::get('/', function () {
+            return 'Some Secret Admin Page';
+        });
+        Route::get('/other', function () {
+            return 'Another Secret Admin Page';
+        });
+    }
+);
+
+
+
+
+O ÚNICO DETALHE, AQUI, É QUE 
+
+
+o 'group' de routes deve sempre vir DEPOIS DO 'middleware', 'prefix' e coisas 
+do gênero...
+
+
+
+
+
+
+
+
+
+
+
+
+CÓDIGO FINAL:
+
+
+
+
+
+
+
+
+
+
+// * Example of route-specific middleware (auth guards).
+// Route::get('/administration', function () {
+//     return 'Some Secret Admin Page';
+// })->middleware(CheckUserRole::class); // * this is the middleware that checks if the user is an admin.
+
+// * Better (usage of group, to have a single call of '->middleware()')
+// Route::group(
+//     function () {
+//         Route::get('/administration', function () {
+//             return 'Some Secret Admin Page';
+//         });
+//         Route::get('/administration/other', function () {
+//             return 'Another Secret Admin Page';
+//         });
+//     }
+// )->middleware(CheckUserRole::class);
+
+// * Even better usage of group, to have a single call of '->middleware()', and then 'prefix', to implicitly set 'administration' prefix)
+Route::prefix('/administration')->middleware(CheckUserRole::class)->group(
+    function () {
+        Route::get('/', function () {
+            return 'Some Secret Admin Page';
+        });
+        Route::get('/other', function () {
+            return 'Another Secret Admin Page';
+        });
+    }
+);
+
+// * Other way to write the code seen above:
+// Route::middleware(CheckUserRole::class)->prefix('/administration')->group(
+//     function () {
+//         Route::get('/', function () {
+//             return 'Some Secret Admin Page';
+//         });
+//         Route::get('/other', function () {
+//             return 'Another Secret Admin Page';
+//         });
+//     }
+// );
+
+
+// * Use this syntax if you don't want to use a prefix segment in your routes
+// Route::middleware(CheckUserRole::class)->group(
+//     function () {
+//         Route::get('/', function () {
+//             return 'Some Secret Admin Page';
+//         });
+//         Route::get('/other', function () {
+//             return 'Another Secret Admin Page';
+//         });
+//     }
+// );
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+MAS DIGAMOS QUE TEMOS MÚLTIPLOS MIDDLEWARES, EM VEZ DE 1 ÚNICO MIDDLEWARE..
+
+
+
+
+
+
+
+-> NESSES CASOS,
+
+
+ESCREVEMOS 1 ARRAY DE MIDDLEWARES DENTRO DE 'Route::middleware()',
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+Route::prefix('/administration')->middleware([CheckUserRole::class, SomeOtherMiddleware::class])->group(
+    function () {
+        Route::get('/', function () {
+            return 'Some Secret Admin Page';
+        });
+        Route::get('/other', function () {
+            return 'Another Secret Admin Page';
+        });
+    }
+);
+
+
+
+
+
+
+
+
+
+
+
+
+OK... MAS DIGAMOS QUE VC QUER IMPEDIR QUE 1 DESSES MIDDLEWARES 
+SEJA APLICADO A ALGUMA DAS ROUTES DENTRO DE ESSE GROUP... COMO VC FARIA ISSO?
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> VC PODE FAZER ISSO, NO LARAVEL, PQ 
+EXISTE UM METHOD CHAMADO DE '->withoutMiddleware()',
+
+
+QUE VC PODE ADICIONAR A ROUTES INDIVIDUAIS...
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+Route::prefix('/administration')->middleware([CheckUserRole::class, SomeOtherMiddleware::class])->group(
+    function () {
+        Route::get('/', function () {
+            return 'Some Secret Admin Page';
+        });
+        Route::get('/other', function () {
+            return 'Another Secret Admin Page';
+        })->withoutMiddleware(SomeOtherMiddleware::class);
+    }
+);
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+// * This is how you can:
+// * 1) use multiple middlewares in a group of routes
+// * 2) exclude a middleware from being applied to a route/some of the routes in the group, while being applied to all others.
+Route::prefix('/administration')->middleware([CheckUserRole::class, SomeOtherMiddleware::class])->group(
+    function () {
+        Route::get('/', function () {
+            return 'Some Secret Admin Page';
+        });
+        Route::get('/other', function () {
+            return 'Another Secret Admin Page';
+        })->withoutMiddleware(SomeOtherMiddleware::class);
+    }
+);
+
+
+
+
+
+
+
+
+
+
+
+-> vc também pode adicionar 'withoutMiddleware()' a groups inteiros,
+    para exclude daquele group inteiro...
+     
+
+
+
+
+
+
+
+---> CERTO... AGORA DEVEMOS CONTINUAR...
+
+
+
+
+
+
+--> O LARAVEL TEM ALGUNS DEFAULT MIDDLEWARE GROUPS,
+    QUE JÁ SÃO APLICADOS A ALGUMAS ROUTES...
+
+
+
+
+
+
+
+
+
+SE VOLTAMOS ATÉ A CLASS DE 'ApplicationBuilder.php',
+
+
+
+
+TEMOS ESTE CÓDIGO:
+
+
+
+
+
+
+
+
+    /**
+     * Register the global middleware, middleware groups, and middleware aliases for the application.
+     *
+     * @param  callable|null  $callback
+     * @return $this
+     */
+    public function withMiddleware(?callable $callback = null)
+    {
+        $this->app->afterResolving(HttpKernel::class, function ($kernel) use ($callback) {
+            $middleware = (new Middleware)
+                ->redirectGuestsTo(fn () => route('login'));
+
+            if (! is_null($callback)) {
+                $callback($middleware);
+            }
+
+            $this->pageMiddleware = $middleware->getPageMiddleware();
+            $kernel->setGlobalMiddleware($middleware->getGlobalMiddleware());
+            $kernel->setMiddlewareGroups($middleware->getMiddlewareGroups());
+            $kernel->setMiddlewareAliases($middleware->getMiddlewareAliases());
+
+            if ($priorities = $middleware->getMiddlewarePriority()) {
+                $kernel->setMiddlewarePriority($priorities);
+            }
+
+            if ($priorityAppends = $middleware->getMiddlewarePriorityAppends()) {
+                foreach ($priorityAppends as $newMiddleware => $after) {
+                    $kernel->addToMiddlewarePriorityAfter($after, $newMiddleware);
+                }
+            }
+
+            if ($priorityPrepends = $middleware->getMiddlewarePriorityPrepends()) {
+                foreach ($priorityPrepends as $newMiddleware => $before) {
+                    $kernel->addToMiddlewarePriorityBefore($before, $newMiddleware);
+                }
+            }
+        });
+
+        return $this;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+temos a parte de 'getGlobalMiddleware()',
+
+
+
+
+sim, mas temos também 'getMiddlewareGroups()'...
+
+
+
+
+
+
+
+
+
+DENTRO DISSO, 
+
+TEMOS ISTO:
+
+
+
+
+
+
+
+
+
+    public function getGlobalMiddleware()
+    {
+        $middleware = $this->global ?: array_values(array_filter([
+            \Illuminate\Foundation\Http\Middleware\InvokeDeferredCallbacks::class,
+            $this->trustHosts ? \Illuminate\Http\Middleware\TrustHosts::class : null,
+            \Illuminate\Http\Middleware\TrustProxies::class,
+            \Illuminate\Http\Middleware\HandleCors::class,
+            \Illuminate\Foundation\Http\Middleware\PreventRequestsDuringMaintenance::class,
+            \Illuminate\Http\Middleware\ValidatePostSize::class,
+            \Illuminate\Foundation\Http\Middleware\TrimStrings::class,
+            \Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::class,
+        ]));
+
+        $middleware = array_map(function ($middleware) {
+            return $this->replacements[$middleware] ?? $middleware;
+        }, $middleware);
+
+        return array_values(array_filter(
+            array_diff(
+                array_unique(array_merge($this->prepends, $middleware, $this->appends)),
+                $this->removals
+            )
+        ));
+    }
+
+
+
+
+
+
+
+
+
+COMO VC PODE VER, O LARAVEL TEM 2 MIDDLEWARE GROUPS,
+DIFERENTES...
+
+
+
+
+
+
+
+
+
+
+
+
+TEM 1 MIDDLEWARE GROUP PARA 'web',
+e outro para 'api'...
+
+
+
+
+
+
+
+
+
+
+web --> são middlewares que são aplicados 
+        ao arquivo 'web.php'...
+
+
+
+'api' --> são aplicados 
+            À file de 'api.php'...
+
+
+
+
+            --> NO NOSSO PROJETO, NÃO TEMOS  O ARQUIVO DE 'api.php',
+
+            mas se tivéssemos, 
+
+
+
+            esses seriam os middlewares aplicados ÀS routes dele...
+
+
+
+
+
+
+
+--> BASICAMENTE, NOSSOS 
+    WEB REQUESTS VÃO POR DENTRO 
+
+    DESSES WEB MIDDLEWARES, ALÉM 
+
+    DE IR POR DENTRO DOS 'GLOBAL' E 'CUSTOM' MIDDLEWARES
+
+
+
+
+
+
+
+
+
+
+--> E VC PODE   
+    FAZER APPEND/PREPEND/REPLACE dos
+
+    MIDDLEWARES DESSES MIDDLEWARE GROUPS 
+
+    DE 'web' e 'api',
+
+
+
+    SE VC RODAR ESSES METHODS, LÁ DENTRO 
+
+    DO METHOD 'withMiddleware()',
+
+    lá no arquivo 'bootstrap>app.php'...
+
+
+
+
+
+
+no nosso app.php, estamos com ESTE CÓDIGO:
+
+
+
+
+
+
+<?php
+
+use Illuminate\Foundation\Application;
+use Illuminate\Foundation\Configuration\Exceptions;
+use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Support\Facades\Route;
+
+return Application::configure(basePath: dirname(__DIR__))
+    ->withRouting(
+        web: __DIR__ . '/../routes/web.php',
+        commands: __DIR__ . '/../routes/console.php',
+        health: '/up',
+    )
+    ->withMiddleware(function (Middleware $middleware) {
+        $middleware->prepend(App\Http\Middleware\AssignRequestIdMiddleware::class); // * THIS PREPENDS YOUR CUSTOM MIDDLEWARE TO THE BEGINNING OF THE GLOBAL MIDDLEWARE STACK.
+        $middleware->append(App\Http\Middleware\AssignRequestIdMiddleware::class);
+    })
+    ->withExceptions(function (Exceptions $exceptions) {
+        //
+    })->create();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> PARA FAZER ISSO, PARA EDITAR ESSES MIDDLEWARES DE 'web',
+
+
+basta voce chamar 
+
+
+'$middleware->web()',
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+<?php
+
+use Illuminate\Foundation\Application;
+use Illuminate\Foundation\Configuration\Exceptions;
+use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Support\Facades\Route;
+
+return Application::configure(basePath: dirname(__DIR__))
+    ->withRouting(
+        web: __DIR__ . '/../routes/web.php',
+        commands: __DIR__ . '/../routes/console.php',
+        health: '/up',
+
+    )
+    ->withMiddleware(function (Middleware $middleware) {
+        
+         $middleware->web(); // * arguments are arrays: prepend, append, remove, replace.
+
+    })
+    ->withExceptions(function (Exceptions $exceptions) {
+        //
+    })->create();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+O METHOD DE '->web()', no caso, faz ISTO:
+
+
+    public function web(array|string $append = [], array|string $prepend = [], array|string $remove = [], array $replace = [])
+    {
+        return $this->modifyGroup('web', $append, $prepend, $remove, $replace);
+    }
+
+
+
+
+
+
+
+
+
+
+
+--> ESSE METHOD TE DEIXA:
+
+
+'append', 'prepend', 'remove' e 'replace'...
+
+
+
+--> VC TAMBÉM PODE USAR '->api()',
+    que faz a mesma coisa, mas com os middlewares 
+
+    de 'api'...
+
+
+
+
+
+
+
+--> CERTO... POR EXEMPLO, 
+    SE DESEJAMOS ADICIONAR O MIDDLEWARE DE 'AssignRequestId'
+    SOMENTE AOS WEB REQUESTS,
+
+
+
+    ESCREVEMOS ASSIM:
+
+
+
+
+
+
+
+    ->withMiddleware(function (Middleware $middleware) {
+
+        $middleware->web(
+            append: [AssignRequestIdMiddleware::class]
+        );
+
+    })
+
+
+
+
+
+
+SE VC QUER USAR 'prepend',
+
+é só usar 'prepend: xxxxx'...
+
+
+
+
+
+
+
+E SE VC QUER SUBSTITUIR 1 DOS MIDDLEWARES, NO MIDDLEWARE GROUP DE 'web',
+
+
+POR OUTRO MIDDLEWARE,
+
+
+
+
+
+vc usa 
+
+
+'replace:',
+
+
+
+
+tipo 
+
+
+
+
+
+
+replace: [EncryptCookies::class => YourEncryptCookiesMiddleware::class];
+
+
+
+
+
+
+
+
+
+OU SEJA,
+
+VC VAI PASSAR 1 KEY VALUE PAIR,
+
+EM QUE A KEY É O 'OLD MIDDLEWARE',
+
+E O VALUE É O __ NEW MIDDLEWARE...
+
+
+
+
+
+
+
+
+
+-> OUTRA POSSIBILIDADE É 
+'remove: ',
+
+
+
+
+
+tipo assim:
+
+
+
+
+
+        $middleware->web(
+            // append: [AssignRequestIdMiddleware::class],
+            // prepend: [AssignRequestIdMiddleware::class],
+            // replace: [EncryptCookies::class => YourEncryptionMiddleware::class], // replace one of the default web middlewares
+            // remove: [VerifyCsrfToken::class], // remove one of the default web middlewares
+        );
+
+
+
+
+
+
+
+
+
+
+
+--> VC TAMBÉM PODE FAZER APPEND DO SEU MIDDLEWARE EM 1 DOS MIDDLEWARE GROUPS DEFAULT,
+
+
+COM O METHOD '$middleware->appendToGroup()',
+
+
+
+ESCOLHENDO OU O GROUP 'api' ou o group 'web'...
+
+
+
+
+EX:
+
+$middleware->appendToGroup('web')
+
+
+
+
+-> VC TAMBÉM PODE FAZER O PREPEND,
+COM O METHOD '$middleware->prependToGroup()',
+
+
+
+ESCOLHENDO OU O GROUP 'api' ou o group 'web'...
+
+
+
+
+EX:
+
+
+
+$middleware->prependToGroup('web')
+
+
+
+
+
+
+
+
+
+
+
+
+--> VC TAMBÉM PODE USAR ESSES METHODS COM SEUS PRÓPRIOS MIDDLEWARES,
+
+TIPO 
+
+
+''
+
+$middleware->prependToGroup([CheckUserRole::class, SomeOtherMiddleware::class]);
+
+''
+
+
+
+
+
+
+
+
+e os calls de '$middleware->web()' e '$middleware->api()'
+
+
+
+
+FAZEM O CALL DE 'modifyGroup()',
+
+que, por sua vez,
+
+já se utiliza 
+
+desse 'prependToGroup()' e 'appendToGroup()' para modificar os 
+
+
+middleware groups default,
+
+tipo assim:
+
+
+
+
+
+
+
+    public function web(array|string $append = [], array|string $prepend = [], array|string $remove = [], array $replace = [])
+    {
+        return $this->modifyGroup('web', $append, $prepend, $remove, $replace);
+    }
+
+
+
+
+E ASSIM:
+
+
+
+
+
+
+    protected function modifyGroup(string $group, array|string $append, array|string $prepend, array|string $remove, array $replace)
+    {
+        if (! empty($append)) {
+            $this->appendToGroup($group, $append);
+        }
+
+        if (! empty($prepend)) {
+            $this->prependToGroup($group, $prepend);
+        }
+
+        if (! empty($remove)) {
+            $this->removeFromGroup($group, $remove);
+        }
+
+        if (! empty($replace)) {
+            foreach ($replace as $search => $replace) {
+                $this->replaceInGroup($group, $search, $replace);
+            }
+        }
+
+        return $this;
+    }
+
+
+
+
+
+
+
+quer dizer que tudo dá na mesma...
+
+
+
+
+
+
+
+
+
+HÁ TAMBÉM MANEIRAS DE:
+
+
+
+1) DEFINE MIDDLEWARE ALIASES...
+
+
+
+2) PASS PARAMETERS TO MIDDLEWARES...
+
+
+
+
+
+
+
+
+
+
+--> PARA FAZER ALIAS DE 1 MIDDLEWARE,
+
+VC PODE USAR O METHOD '->alias()',
+
+    DENTRO DO METHOD DE '->withMiddleware()'
+
+
+
+
+
+
+
+
+
+
+ALGO TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+->withMiddleware(
+    function (Middleware $middleware) {
+
+
+        $middleware->alias(
+            [
+
+            ]
+        )
+    }
+)
+
+
+
+
+
+
+
+
+DENTRO DE 'alias([])',
+
+
+VC PASSA 1 LISTA DE ALIAS E OS MIDDLEWARES CORRESPONDENTES...
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+->withMiddleware(
+    function (Middleware $middleware) {
+
+
+        $middleware->alias(
+            [
+                'role' => CheckUserRole::class,
+                'admin' => SomeAdminMiddleware::class
+            ]
+        )
+    }
+)
+
+
+
+
+
+
+
+
+
+
+
+
+
+COM ISSO, LÁ EM 'web.php',
+
+
+
+
+DEVEMOS SIMPLESMENTE REFERENCIAR ISSO 
+
+
+NO NOSSO 'Route::middleware()',
+
+
+TIPO ASSIM:
+
+
+
+Route::middleware('role')->group(
+    function () {
+        Route::get('/', function () {
+            return 'Some Secret Admin Page';
+        });
+        Route::get('/other', function () {
+            return 'Another Secret Admin Page';
+        });
+    }
+);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... MAS COMO PODEMOS RECEBER PARAMETERS, DE DENTRO DE NOSSOS 
+    MIDDLEWARES?
+
+
+
+
+
+
+
+PODEMOS FAZER TIPO ASSIM (receber o argument de '$role', dentro do middleware):
+
+
+
+
+
+
+
+<?php
+
+namespace App\Http\Middleware;
+
+use Closure;
+use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
+
+// Basic check for user authorization in your app.
+class CheckUserRole
+{
+    /**
+     * Handle an incoming request.
+     *
+     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     */
+    public function handle(Request $request, Closure $next, string $userRole): Response
+    {
+        dump('Checking user role: ' . $userRole);
+
+        $user = ['id' => 123, 'name' => 'Gio', 'role' => 'admin'];
+
+        if ($user['role'] === 'admin') {
+            return $next($request);
+        }
+
+        abort(404, 'This page does not exist.'); // * this is essentially the same as a throw new NotFoundHttpException(404, 'This page does not exist.')
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> AÍ, LÁ DENTRO DO 
+
+
+
+'web.php',
+
+para passar esse param,
+
+
+podemos 
+
+
+
+SIMPLESMENTE ESCREVER ASSIM:
+
+
+
+Route::middleware('role:admin')->group(
+    function () {
+        Route::get('/', function () {
+            return 'Some Secret Admin Page';
+        });
+        Route::get('/other', function () {
+            return 'Another Secret Admin Page';
+        });
+    }
+);
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> com isso, conseguimos passar 1 value de 'admin' 
+para dentro do middleware de 'CheckUserRole'...
+
+
+
+
+
+--> a partir disso, podemos passar DIFERENTES VALUES,
+
+COMO 
+
+
+
+'role:editor',
+
+'role:admin',
+
+'role:user',
+
+
+
+
+
+
+
+
+
+
+
+PODEMOS EDITAR NOSSO GUARD, TAMBÉM,
+
+
+PARA QUE FUNCIONE ASSIM:
+
+
+
+
+
+
+
+// Basic check for user authorization in your app.
+class CheckUserRole
+{
+    /**
+     * Handle an incoming request.
+     *
+     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     */
+    public function handle(Request $request, Closure $next, string $role): Response
+    {
+        dump('Checking user role: ' . $role);
+
+        $user = ['id' => 123, 'name' => 'Gio', 'role' => 'admin'];
+
+        if ($user['role'] === $role) {
+            return $next($request);
+        }
+
+        abort(404, 'This page does not exist.'); 
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+COM ISSO, NOSSO MIDDLEWARE FICA MAIS FLEXÍVEL, PQ AGORA ELE __ SÓ VAI 
+ACEITAR 
+
+
+requests que tenham o parameter de 'role' como sendo de value 'admin',
+
+
+conforme fora definido AQUI:
+
+
+
+Route::middleware('role:admin')->group(
+    function () {
+        Route::get('/', function () {
+            return 'Some Secret Admin Page';
+        });
+        Route::get('/other', function () {
+            return 'Another Secret Admin Page';
+        });
+    }
+);
+
+
+
+
+
+ELE FICA MAIS FLEXÍVEL PQ PODERÍAMOS COLOCAR OUTRA COISA 
+
+NESSE MIDDLEWARE, COMO 'role:editor',
+
+tipo assim:
+
+
+
+
+Route::middleware('role:editor')->group(
+    function () {
+        Route::get('/', function () {
+            return 'Some Secret Admin Page';
+        });
+        Route::get('/other', function () {
+            return 'Another Secret Admin Page';
+        });
+    }
+);
+
+
+
+
+aí todos os requests que não tiverem o value de 'role' como sendo 'editor'
+
+serão BARRADOS,
+
+por conta deste código:
+
+
+
+
+
+
+
+    public function handle(Request $request, Closure $next, string $role): Response
+    {
+        dump('Checking user role: ' . $role);
+
+        $user = ['id' => 123, 'name' => 'Gio', 'role' => 'admin'];
+
+        if ($user['role'] === $role) {
+            return $next($request);
+        }
+
+        abort(404, 'This page does not exist.'); 
+    }
+
+
+
+
+
+
+
+
+
+
+
+COMO VC PODE PERCEBER, O LARAVEL É BEM FLEXÍVEL...
+
+
+
+
+
+
+
+
+-> O LARAVEL TAMBÉM JÁ PROVIDENCIA UM MONTE DE MIDDLEWARES ÚTEIS,
+    E JÁ TEM ELES ALIASED PARA NOSSA CONVENIÊNCIA...
+
+
+
+    EX DE MIDDLEWARES JÁ ALIASED, DO LARAVEL:
+
+
+    1) 'auth' ---> o mais comum 
+
+    2) 'can' ---> AUTORIZA AÇÕES, COM BASE NAS ABILIDADES DE 1 USER... ('checks if the authenticated user has the given ability/permission')...
+
+
+
+
+
+
+
+
+
+PARA ENCONTRAR A LISTA DE DEFAULT ALIASES DO 
+LARAVEL,
+
+BASTA ENTRAR EM 'Middleware.php' 
+
+E PROCURAR POR 
+
+'defaultAliases()',
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+     */
+    protected function defaultAliases()
+    {
+        $aliases = [
+            'auth' => \Illuminate\Auth\Middleware\Authenticate::class,
+            'auth.basic' => \Illuminate\Auth\Middleware\AuthenticateWithBasicAuth::class,
+            'auth.session' => \Illuminate\Session\Middleware\AuthenticateSession::class,
+            'cache.headers' => \Illuminate\Http\Middleware\SetCacheHeaders::class,
+            'can' => \Illuminate\Auth\Middleware\Authorize::class,
+            'guest' => \Illuminate\Auth\Middleware\RedirectIfAuthenticated::class,
+            'password.confirm' => \Illuminate\Auth\Middleware\RequirePassword::class,
+            'precognitive' => \Illuminate\Foundation\Http\Middleware\HandlePrecognitiveRequests::class,
+            'signed' => \Illuminate\Routing\Middleware\ValidateSignature::class,
+            'throttle' => $this->throttleWithRedis
+                ? \Illuminate\Routing\Middleware\ThrottleRequestsWithRedis::class
+                : \Illuminate\Routing\Middleware\ThrottleRequests::class,
+            'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
+        ];
+
+        if (class_exists(\Spark\Http\Middleware\VerifyBillableIsSubscribed::class)) {
+            $aliases['subscribed'] = \Spark\Http\Middleware\VerifyBillableIsSubscribed::class;
+        }
+
+        return $aliases;
+    }
+
+
+
+
+
+
+
+
+como vc pode ver,
+
+
+são alguns...
+
+
+
+
+VC PODE PASSAR CUSTOM ALIASES,
+
+COMO VISTO ANTERIORMENTE,
+
+E AÍ ELES SÃO 'MERGED TOGETHER',
+
+NESSA LISTA AÍ...
+
+
+
+
+
+
+
+
+LARAVEL É BEM FLEXÍVEL, PORTANTO, E OFERECE
+
+BASTANTES MANEIRAS DE CONFIGURAR E CUSTOMIZAR O FRAMEWORK 
+PARA QUE SE ENCAIXE A SEUS NEEDS... HÁ MÚLTIPLAS MANEIRAS DE FAZER 
+AS COISAS,
+
+NÃO HÁ 1 ÚNICA MANEIRA CERTA...
+
+
+
+
+
+
+
+PODEMOS CHECAR OS DOCS DOS MIDDLEWARES, PARA TER MAIS INFO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> VC PODE DEFINIR MIDDLEWARES EM ROUTES,
+
+    MAS TAMBÉM É POSSÍVEL FAZER ISSO NOS PRÓPRIOS CONTROLLERS,
+
+
+    COM A INTERFACE DE 
+    'hasMiddleware()'... 
+
+
+
+
+
+
+
+--> DIGAMOS QUE QUEREMOS DEFINIR ALGUM TIPO DE 
+    MIDDLEWARE PARA 
+
+    O CONTROLLER DE 'TransactionController'...
+
+
+
+
+
+
+SE VC QUISER FAZER ISSO, VC PRECISA 
+
+DEFINIR O STATIC METHOD 'middleware()',
+
+ no interior do controller,
+
+ tipo assim:
+
+
+
+
+
+
+
+
+
+ <?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Transaction;
+use Illuminate\Http\Request;
+
+class TransactionController extends Controller
+{
+    /**
+     * Display a listing of the resource.
+     */
+    public function index(Request $request)
+    {
+        echo $request->headers->get('X-Request-Id'); // this will return the value of the header 'X-Request-Id'
+        echo route('transactions.home') . '<br />'; // this will return the built url for the route 'transactions.home', in this case, 'localhost/transactions'
+
+        echo route('transaction', ['transactionId' => 55]) . '<br />'; // this will return the built url for the route 'transactions.show', in this case, 'localhost/transactions/55'
+
+
+        // * THIS WILL REDIRECT THE USER to the specified named route.
+        to_route('transactions.create'); // this will return the built url for the route 'transactions.home', in this case, 'localhost/transactions'
+
+
+
+        return view('transactions.index');
+    }
+
+    /**
+     * Display the specified resource.
+     */
+    public function show(string $transactionId): string
+    {
+        return 'Transaction ' . $transactionId;
+    }
+
+    // public function show(Transaction $transaction)
+    // {
+    //     return 'Transaction ' . $transaction->id;
+    // }
+
+    /**
+     * Show the form for creating a new resource.
+     */
+    public function create(): string
+    {
+        return 'Form to create a transaction';
+    }
+
+
+    /**
+     * Store a newly created resource in storage.
+     */
+    public function store(Request $request): string
+    {
+        return 'Transaction Created';
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     */
+    public function edit(Transaction $transaction)
+    {
+        //
+    }
+
+
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(Request $request, Transaction $transaction)
+    {
+        //
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(Transaction $transaction)
+    {
+        //
+    }
+
+    public static function middleware()
+    {
+        return [
+
+        ]
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ESSE STATIC METHOD DEVERÁ RETORNAR 1 ARRAY, QUE SERÁ 
+
+A LIST DE MIDDLEWARES...  AÍ VC PASSA A CLASSNAME DO MIDDLEWARE,
+
+OU O ALIAS DO MIDDLEWARE... VC TAMBÉM PODE PASSAR 1 CLOSURE,
+
+SE VC QUER DEFINIR O MIDDLEWARE DIRETAMENTE ALI,
+EM VEZ DE 
+
+DEFINIR EM 1 CLASS EXTERNA...
+
+
+
+
+
+
+O PROFESSOR NÃO GOSTA DE DEFINIR MIDDLEWARES EM CONTROLLERS,
+
+O PROFESSOR PREFERE DEFINIR EM ROUTES, MAS É POSSÍVEL...
+
+

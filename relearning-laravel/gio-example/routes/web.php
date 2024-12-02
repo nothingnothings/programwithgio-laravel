@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Enums\FileType;
 use App\Http\Controllers\ProcessTransactionController;
 use App\Http\Controllers\TransactionController;
+use App\Http\Middleware\CheckUserRole;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -148,10 +149,92 @@ Route::prefix('/transactions')->group(function () {
     });
 });
 
-// Example of route-specific middleware (auth guards).
-Route::get('/administration', function () {
-    return 'Some Secret Admin Page';
-});
+// * Example of route-specific middleware (auth guards).
+// Route::get('/administration', function () {
+//     return 'Some Secret Admin Page';
+// })->middleware(CheckUserRole::class); // * this is the middleware that checks if the user is an admin.
+
+// * Better (usage of group, to have a single call of '->middleware()')
+// Route::group(
+//     function () {
+//         Route::get('/administration', function () {
+//             return 'Some Secret Admin Page';
+//         });
+//         Route::get('/administration/other', function () {
+//             return 'Another Secret Admin Page';
+//         });
+//     }
+// )->middleware(CheckUserRole::class);
+
+// * Even better usage of group, to have a single call of '->middleware()', and then 'prefix', to implicitly set 'administration' prefix)
+Route::prefix('/administration')->middleware(CheckUserRole::class)->group(
+    function () {
+        Route::get('/', function () {
+            return 'Some Secret Admin Page';
+        });
+        Route::get('/other', function () {
+            return 'Another Secret Admin Page';
+        });
+    }
+);
+
+// * Other way to write the code seen above:
+// Route::middleware(CheckUserRole::class)->prefix('/administration')->group(
+//     function () {
+//         Route::get('/', function () {
+//             return 'Some Secret Admin Page';
+//         });
+//         Route::get('/other', function () {
+//             return 'Another Secret Admin Page';
+//         });
+//     }
+// );
+
+
+// * Use this syntax if you don't want to use a prefix segment in your routes
+// Route::middleware(CheckUserRole::class)->group(
+//     function () {
+//         Route::get('/', function () {
+//             return 'Some Secret Admin Page';
+//         });
+//         Route::get('/other', function () {
+//             return 'Another Secret Admin Page';
+//         });
+//     }
+// );
+
+
+
+
+// Route::prefix('/administration')->middleware([CheckUserRole::class, SomeOtherMiddleware::class])->group(
+//     function () {
+//         Route::get('/', function () {
+//             return 'Some Secret Admin Page';
+//         });
+//         Route::get('/other', function () {
+//             return 'Another Secret Admin Page';
+//         });
+//     }
+// );
+
+
+// * This is how you can:
+// * 1) use multiple middlewares in a group of routes
+// * 2) exclude a middleware from being applied to a route/some of the routes in the group, while being applied to all others.
+Route::prefix('/administration')->middleware([CheckUserRole::class, SomeOtherMiddleware::class])->group(
+    function () {
+        Route::get('/', function () {
+            return 'Some Secret Admin Page';
+        });
+        Route::get('/other', function () {
+            return 'Another Secret Admin Page';
+        })->withoutMiddleware(SomeOtherMiddleware::class);
+    }
+);
+
+
+
+
 
 Route::get('/transactions/{transactionId}/process', ProcessTransactionController::class);
 
