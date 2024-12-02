@@ -1,0 +1,1397 @@
+
+
+
+
+
+
+AGORA VAMOS FALAR SOBRE SERVICE PROVIDERS...
+
+
+
+
+
+
+SERVICE PROVIDERS SÃO COMO 
+
+
+''BUILDING BLOCKS THAT PREPARE AND CONFIGURE YOUR APP''...
+
+
+
+
+
+
+
+--> SÃO COMO 'LEGO SET PIECES',
+
+QUE SE JUNTAM PARA FORMAR 1 ESTRUTURA COMPLETA...
+
+
+
+
+
+
+--> ''THEY SERVE AS THE CENTRAL HUB FOR BOOTSTRAPPING YOUR APP''...
+
+
+
+
+
+
+
+
+-> ELES HANDLAM TODAS AS MAJOR SET-UP TASKS, COMO:
+
+
+
+    1) BINDING SERVICES INTO THE SERVICE CONTAINER 
+
+    2) REGISTERING EVENT LISTENERS 
+
+    3) PERFORMING OTHER INITIALIZATION TASKS...
+
+
+
+
+
+
+
+
+
+
+--> OU SEJA,
+
+    SERVICE PROVIDERS 
+
+    __ TE DÃO UMA MANEIRA DE EXTEND E MODIFY 
+    O CORE BEHAVIOR 
+
+    DO LARAVEL FRAMEWORK,
+
+    GARANTINDO QUE 
+
+    TUDO FIQUE PRONTO PARA QUE SEU APP FUNCIONE PROPERLY....
+
+
+
+
+
+
+
+---> O LARAVEL,
+    COMO VC PODE TER PERCEBIDO,
+
+    É COMPOSTO POR MÚLTIPLOS COMPONENTS...
+
+
+
+
+
+
+
+
+    COMPONENTS:
+
+
+
+    1) AUTH COMPONENT 
+
+
+    2) DATABASE COMPONENT 
+
+    3) QUEUE COMPONENT 
+
+    4) CACHE COMPONENT 
+
+
+    5) ROUTE COMPONENT,
+
+
+
+    E ASSIM POR DIANTE...
+
+
+
+
+
+
+
+
+
+
+--> ADICIONALMENTE,
+VC TALVEZ TENHA 
+
+
+THIRD-PARTY PACKAGES QUE FAZEM EXTEND DO FRAMEWORK,
+
+QUE JÁ VEM COM COMPONENTS PRÓPRIOS...
+
+
+
+
+
+
+
+
+
+--> ESSES COMPONENTS, NO CASO,
+
+
+    ''BASICALLY REGISTER THEMSELVES, WITH LARAVEL,
+    USING SERVICE PROVIDERS''...
+
+
+
+
+
+
+--> ''SERVICE PROVIDERS ALLOW EACH OF THESE COMPONENTS 
+TO REGISTER THEIR OWN BINDINGS, AND CONFIGURE THEMSELVES IN THE 
+APP'S LIFECYCLE, EFFECTIVELY ALLOWING LARAVEL TO KNOW HOW TO SET EVERYTHING 
+UP...''
+
+
+
+
+
+
+
+
+
+
+
+-> DEVEMOS ANALISAR O APP SERVICE PROVIDER, COMO 1 EXEMPLO...
+
+
+
+
+ELE TEM ESTE FORMATO:
+
+
+
+
+
+
+
+
+
+<?php
+
+namespace App\Providers;
+
+use App\Contracts\PaymentProcessorInterface;
+use App\Services\Stripe;
+use Illuminate\Foundation\Application;
+use Illuminate\Support\Facades\Route;
+use Illuminate\Support\ServiceProvider;
+
+class AppServiceProvider extends ServiceProvider
+{
+    /**
+     * Register any application services.
+     */
+    public function register(): void
+    {
+        // * Best way, because our class and all its dependencies are resolved, considering that parameters are passed down with the assoc array.
+        $this->app->bind('App\Contracts\PaymentProcessorInterface', function (Application $app) {
+            return $app->make(Stripe::class, [
+                'config' => [
+                    'dummy_key' => 'dummy_value',
+                ]
+            ]);
+        });
+    }
+
+    /**
+     * Bootstrap any application services.
+     */
+    public function boot(): void
+    {
+        Route::pattern('transactionId', '[0-9]+'); // this is a constraint applied to all routes that have a parameter named 'id'
+        Route::pattern('fileId', '[0-9]+'); // this is a constraint applied to all routes that have a parameter named 'id'
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+COMO VC PODE PERCEBER,
+
+
+ELE FAZ EXTEND DA MAIN CLASS 
+
+
+'ServiceProvider',
+
+
+
+
+
+E PROVIDENCIA 2 METHODS PRINCIPAIS,
+
+
+'register()"
+
+e 'boot()'...
+
+
+
+
+
+
+
+DENTRO DO 
+
+
+'register()',
+
+NÓS 
+
+
+BINDAMOS COISAS AO SERVICE CONTAINER,
+
+
+EXATAMENTE COMO ESTAMOS FAZENDO AQUI, nesse exemplo:
+
+
+
+
+    public function register(): void
+    {
+        // * Best way, because our class and all its dependencies are resolved, considering that parameters are passed down with the assoc array.
+        $this->app->bind('App\Contracts\PaymentProcessorInterface', function (Application $app) {
+            return $app->make(Stripe::class, [
+                'config' => [
+                    'dummy_key' => 'dummy_value',
+                ]
+            ]);
+        });
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> CERTO... E O METHOD DE register()
+
+NÃO DEVE TER QUALQUER LÓGICA COMPLEXA OU QUALQUER PARTE DA FUNCIONALIDADE 
+DE NOSSO APP...
+
+
+ELE DEVE SER USADO APENAS PARA BINDAR COISAS NO CONTAINER...
+
+
+
+
+
+A RAZÃO PARA ISSO É   __eVITAR CONFLITOS,
+
+NÃO TENTAR USAR ALGO/ALGUM SERVICE QUE 
+
+
+FOI BOUND EM OUTRO SERVICE PROVIDER, QUE PODE AINDA NÃO TER SIDO 
+LOADED... (isso causa issues)...
+
+
+
+
+
+
+
+
+
+
+
+--> O REGISTER() method é chamado BEM CEDO 
+    NO LIFECYCLE do request,
+
+
+    E OUTROS SERVICE PROVIDERS PODEM AINDA NÃO ESTAR CARREGADOS,
+
+    POR ISSO 
+     
+    VC VAI QUERER EVITAR TENTAR USAR SERVICES QUE AINDA NÃO FORAM BOOTSTRAPPADOS...
+
+
+
+
+
+
+--> VC VAI QUERER RODAR ESSA LÓGICA, NO CASO,
+
+    LÁ NO 'boot()',
+
+    E NÃO NO 'register()"...
+
+
+
+
+
+
+
+
+    register --> queremos usar isso  apenas para BINDAR COISAS 
+                NO SERVICE CONTAINER...
+
+
+
+
+
+
+
+
+
+
+'boot()' --> é executado APENAS DEPOIS DE TODOS OS SERVICE PROVIDERS 
+            TEREM SIDO REGISTRADOS.... É POR ISSO QUE 
+
+            DEVEMOS PENSAR 
+
+
+            NESSE PROCESSO COMO 1 LOOP:
+
+
+
+            ''LARAVEL GOES THROUGH ALL THE SERVICE PROVIDERS AND 
+            CALLS THE register METHOD FIRST,
+            AND ONLY THEN, AFTERWARDS, IT STARTS CALLING THE 'boot()' methods''...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> ISSO QUER DIZER QUE O METHOD DE 'boot()"
+
+é o local correto para rodar a lógica que requer acesso a outras partes do app...
+
+
+
+DENTRO DO METHOD DE 'boot',
+
+VC PODE CONFIGURAR E CUSTOMIZAR COISAS TANTO:
+
+
+1) DENTRO DO LARAVEL FRAMEWORK 
+
+
+2) DENTRO DO SEU PRÓPRIO APP...
+
+
+
+
+ 
+ POR EXEMPLO:
+
+
+
+ ''IF YOU WANTED TO SHARE SOME DATA TO ALL THE VIEWS THAT ARE RENDERED 
+ BY YOUR APPLICATION, YOU COULD CALL THE method View::share(), AND THEN 
+ PASS THE KEY-VALUE ARGUMENTS, TO HAVE THIS VALUE AVAILABLE IN ALL OF THE VIEWS''..
+
+
+
+
+
+ TIPO ASSIM:
+
+
+
+
+
+
+
+ <?php
+
+namespace App\Providers;
+
+use App\Contracts\PaymentProcessorInterface;
+use App\Services\Stripe;
+use Illuminate\Foundation\Application;
+use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\View;
+use Illuminate\Support\ServiceProvider;
+
+class AppServiceProvider extends ServiceProvider
+{
+
+
+    /**
+     * Register any application services.
+     */
+    public function register(): void
+    {
+
+        // * Best way, because our class and all its dependencies are resolved, considering that parameters are passed down with the assoc array.
+        $this->app->bind('App\Contracts\PaymentProcessorInterface', function (Application $app) {
+            return $app->make(Stripe::class, [
+                'config' => [
+                    'dummy_key' => 'dummy_value',
+                ]
+            ]);
+        });
+    }
+
+    /**
+     * Bootstrap any application services.
+     */
+    public function boot(): void
+    {
+        //
+        Route::pattern('transactionId', '[0-9]+'); // this is a constraint applied to all routes that have a parameter named 'id'
+        Route::pattern('fileId', '[0-9]+'); // this is a constraint applied to all routes that have a parameter named 'id'
+
+
+        View::share('title', 'MY LARAVEL APP'); // with this call, we share this data with all the views of our app (this key, 'name', of value 'MY LARAVEL APP').
+    }
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+ASSIM:
+
+    {
+
+        View::share('title', 'MY LARAVEL APP'); // with this call, we share this data with all the views of our app (this key, 'name', of value 'MY LARAVEL APP').
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> OUTRO EXAMPLE NÓS JÁ VIMOS,
+
+
+FOI TIPO ESSE AQUI:
+
+
+
+
+
+
+    /**
+     * Bootstrap any application services.
+     */
+    public function boot(): void
+    {
+
+        Route::pattern('transactionId', '[0-9]+'); // this is a constraint applied to all routes that have a parameter named 'id'
+        Route::pattern('fileId', '[0-9]+'); // this is a constraint applied to all routes that have a parameter named 'id'
+
+
+    }
+
+
+
+
+
+
+
+
+
+
+com essas 2 linhas, garantimos que todas as routes que fiquem com esses 2 parameters 
+
+obrigatoriamente só aceitem INTEGERS... (0 a 9, quaisquer tamanho)..
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+''THE SERVICE CONTAINER WILL INJECT ANY TYPEHINTED DEPENDENCIES 
+    WITHIN THESE 'boot()' methods...''
+
+
+
+
+
+
+---> QUER DIZER QUE ESSE É UM DOS METHODS EM QUE O LARAVEL 
+
+    APLICA O 'METHOD INJECTION' AUTOMATICAMENTE PARA NÓS,
+
+
+    TIPO ASSIM:
+
+
+
+
+
+public function boot(PaymentProcessor $paymentProcessor): void 
+{
+    dd($paymentProcessor);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+--> NESSE CASO,
+
+    O LARAVEL VAI PRINTAR O 
+
+
+    'paymentProcessor',
+
+
+    o object,
+
+    em todas nossas routes,
+    e aí 
+
+    vai parar 
+
+
+    a execução (dump and die)...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> PODEMOS VER TODOS OS PROVIDERS DO LARAVEL...
+
+
+
+
+
+--> BASTA ABRIR O VENDOR DIRECTORY,
+
+DEPOIS 'laravel', 'framework',
+
+
+e depois 'src'...
+
+
+
+
+
+
+
+
+-> DENTRO DE 'Illuminate',
+
+
+TEMOS MTOS COMPONENTS...
+
+
+
+
+
+1) Auth 
+
+
+2) Cache 
+
+
+3) Config 
+
+
+4) Console...
+
+
+
+
+
+
+
+
+SE ABRIRMOS QUALQUER 1 DELES, PODEREMOS ENCONTRAR O ServiceProvider
+
+CORRESPONDENTE...
+
+
+
+
+
+
+
+
+por exemplo, no 'FileSystem',
+
+
+TEMOS VÁRIOS ARQUIVOS, DENTRE ELES 
+
+
+'FileSystemServiceProvider'...
+
+
+
+
+
+
+
+
+
+
+
+
+-> SE ABRIMOS ELE, ENCONTRAMOS ISTO:
+
+
+
+
+
+<?php
+
+namespace Illuminate\Filesystem;
+
+use Illuminate\Contracts\Foundation\CachesRoutes;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
+use Illuminate\Support\ServiceProvider;
+
+class FilesystemServiceProvider extends ServiceProvider
+{
+    /**
+     * Bootstrap the filesystem.
+     *
+     * @return void
+     */
+    public function boot()
+    {
+        $this->serveFiles();
+    }
+
+    /**
+     * Register the service provider.
+     *
+     * @return void
+     */
+    public function register()
+    {
+        $this->registerNativeFilesystem();
+        $this->registerFlysystem();
+    }
+
+    /**
+     * Register the native filesystem implementation.
+     *
+     * @return void
+     */
+    protected function registerNativeFilesystem()
+    {
+        $this->app->singleton('files', function () {
+            return new Filesystem;
+        });
+
+
+
+
+
+
+
+ 
+
+
+
+
+ou seja,
+
+temos o method de 'boot' e 'register()",
+
+
+
+
+
+
+ASSIM COMO OUTROS METHODS... MAS É CLARO QUE 
+
+
+
+ESSES 2 SÃO OS DEFAULT, sempre utilizados...
+
+
+
+
+
+tipo assim:
+
+
+
+
+
+
+    public function register()
+    {
+        $this->registerNativeFilesystem();
+        $this->registerFlysystem();
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+mesma coisa com 'DatabaseServiceProvider':
+
+
+
+
+
+
+
+
+
+
+
+
+<?php
+
+namespace Illuminate\Database;
+
+use Faker\Factory as FakerFactory;
+use Faker\Generator as FakerGenerator;
+use Illuminate\Contracts\Queue\EntityResolver;
+use Illuminate\Database\Connectors\ConnectionFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\QueueEntityResolver;
+use Illuminate\Support\ServiceProvider;
+
+class DatabaseServiceProvider extends ServiceProvider
+{
+    /**
+     * The array of resolved Faker instances.
+     *
+     * @var array
+     */
+    protected static $fakers = [];
+
+    /**
+     * Bootstrap the application events.
+     *
+     * @return void
+     */
+    public function boot()
+    {
+        Model::setConnectionResolver($this->app['db']);
+
+        Model::setEventDispatcher($this->app['events']);
+    }
+
+    /**
+     * Register the service provider.
+     *
+     * @return void
+     */
+    public function register()
+    {
+        Model::clearBootedModels();
+
+        $this->registerConnectionServices();
+        $this->registerFakerGenerator();
+        $this->registerQueueableEntityResolver();
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+certo... faz sentido...
+
+
+
+
+
+
+
+''ServiceProvider'',
+
+
+ESSE NOME FAZ SENTIDO.... PQ 
+
+
+
+
+
+BASICAMENTE 
+
+
+'PROVIDES A SERVICE TO THE 
+FRAMEWORK, 
+
+
+BY REGISTERING SOMETHING INTO THE CONTAINER 
+
+AND BY EXECUTING SOME ACTIONS IN THE 'boot()' method...
+
+
+
+
+
+
+
+
+
+
+
+
+JÁ FALAMOS SOBRE COMO SERVICE PROVIDERS FUNCIONAM,
+EM 1 HIGH LEVEL,
+QUANDO FALAMOS SOBRE A ARCHITECTURE DO LARAVEL...
+
+
+
+
+
+
+
+
+
+
+
+--> MAS AGORA DEVEMOS FALAR SOBRE ''HOW WE CAN CREATE AND USE 
+                                    SERVICE PROVIDERS''...
+
+
+
+
+
+
+
+
+-> SE FICARMOS CRIANDO TODA A LÓGICA E EXECUTANDO DENTRO 
+
+
+DESSE ÚNICO 'AppServiceProvider',
+
+
+VAI FICAR BEM BLOATED O SEU CÓDIGO...
+
+
+
+
+
+
+
+
+
+
+
+--> É POR ISSO QUE É UMA EXCELENTE IDEIA SPLITTAR SEU CÓDIGO 
+
+EM MÚLTIPLOS SERVICES PROVIDERS...
+
+
+
+
+
+
+
+
+--> MAS COMO PODEMOS FAZER ISSO?
+
+
+
+
+
+
+''SINGLETONS ARE GOOD FOR CASES WHEN CREATING OBJECTS 
+IS EXPENSIVE... EXPENSIVE OBJECTS''...
+
+
+
+''WE WANT TO HAVE A SINGLE PAYMENT PROCESSOR INSTANCE ALONG THE ENTIRE REQUEST,
+WE WON'T NEED MULTIPLE INSTANCES OF THIS SAME OBJECT...''
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> OK... QUEREMOS COLOCAR ESSE CÓDIGO EM 1 NOVO SERVICE PROVIDER...
+
+
+
+
+
+
+
+--> PARA ISSO, BASTA ESCREVER O COMANDO ARTISAN, QUE SERÁ 
+
+
+
+''php artisan make:provider'...
+
+
+
+
+
+
+
+
+-> colocamos 1 nome de 'PaymentProcessorProvider'...
+
+
+
+
+
+
+
+
+
+
+
+FICAMOS COM ALGO TIPO ASSIM, INICIALMENTE:
+
+
+
+
+
+
+<?php
+
+namespace App\Providers;
+
+use Illuminate\Support\ServiceProvider;
+
+class PaymentProcessorProvider extends ServiceProvider
+{
+    /**
+     * Register services.
+     */
+    public function register(): void
+    {
+        //
+    }
+
+    /**
+     * Bootstrap services.
+     */
+    public function boot(): void
+    {
+        //
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> QUANDO CRIAMOS 1 SERVICE PROVIDER,
+
+ELE JÁ É LSITADO DENTRO DO ARQUIVO 'providers.php',
+
+TIPO ASSIM:
+
+
+
+
+
+
+<?php
+
+return [
+    App\Providers\AppServiceProvider::class,
+    App\Providers\PaymentProcessorProvider::class,
+];
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... E É CLARO QUE ISSO NÃO ACONTECE SE VC CRIAR ESSE SERVICE PROVIDER MANUALMENTE...
+
+
+
+
+
+
+
+
+
+
+PODEMOS IR ESCREVENDO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+<?php
+
+namespace App\Providers;
+
+use Illuminate\Support\ServiceProvider;
+
+class PaymentProcessorProvider extends ServiceProvider
+{
+    /**
+     * Register services.
+     */
+    public function register(): void
+    {
+
+        $this->app->bind('App\Contracts\PaymentProcessorInterface', function () {
+            return new \App\Services\Stripe(
+                [
+                    'dummy_key' => 'dummy_value',
+                ],
+                new \App\Services\SalesTaxCalculator()
+            );
+        });
+    }
+
+    /**
+     * Bootstrap services.
+     */
+    public function boot(): void
+    {
+        //
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> o professor fala de 'deferred service providers'...
+
+
+
+
+--> ESSES SÃO SERVICE PROVIDERS QUE 
+
+
+
+''ARE LOADED/REGISTERED __ ONLY WHEN ONE OF THE 
+SERVICES THAT IT PROVIDES IS __ ACTUALLY NEEDED''...
+
+
+
+
+
+
+
+-> ISSO AUMENTA A PERFORMANCE DO SEU APP,
+    É TIPO UM LAZY LOADING DE SERVICES... 
+
+
+
+    --> VC SÓ VAI USAR ISSO 
+    SE O SEU SERVICE PROVIDER 
+
+    APENAS FAZ O register() de coisas para dentro 
+    do container,
+    
+    e não faz uso de 'boot()'...
+
+
+
+
+
+
+
+
+-> NO CASO, O EXEMPLO DE 'PaymentProcessor'
+
+É UM BOM USE-CASE DE 
+
+
+DEFERRED PROVIDER,
+
+PQ 
+
+
+A ÚNICA COISA QUE ESTAMOS FAZENDO, COM ELE, 
+
+É O REGISTER 
+
+
+
+DO 'PaymentProcessorProvider'
+
+ 
+    no nosso app...
+
+
+
+
+
+
+--> MAS COMO DEIXAMOS ELE COMO 1 DEFERRED PROVIDER?
+
+
+
+
+
+
+
+
+
+--> PARA ISSO, PRECISAMOS FAZER O IMPLEMENT 
+
+
+DA INTERFACE DE 'DeferrableProvider',
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+<?php
+
+namespace App\Providers;
+
+use Illuminate\Support\ServiceProvider;
+
+class PaymentProcessorProvider extends ServiceProvider implements DeferrableProvider
+{
+    /**
+     * Register services.
+     */
+    public function register(): void
+    {
+
+        $this->app->bind('App\Contracts\PaymentProcessorInterface', function () {
+            return new \App\Services\Stripe(
+                [
+                    'dummy_key' => 'dummy_value',
+                ],
+                new \App\Services\SalesTaxCalculator()
+            );
+        });
+    }
+
+    public function provides(): void 
+    {
+       return [PaymentProcessor:class];
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+CERTO... ISSO FEITO,
+
+
+PRECISAMOS ESCREVER 1 METHOD CHAMADO DE 'provides()',
+
+
+QUE BASICAMENTE VAI RETORNAR AS BINDINGS QUE SÃO PROVIDENCIADAS PELO 
+
+PROVIDER...
+
+
+NO CASO,
+
+ESCREVEMOS 
+
+
+'return [PaymentProcessor:class]'..
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+<?php
+
+namespace App\Providers;
+
+use Illuminate\Support\ServiceProvider;
+
+class PaymentProcessorProvider extends ServiceProvider implements DeferrableProvider
+{
+    /**
+     * Register services.
+     */
+    public function register(): void
+    {
+
+        $this->app->bind('App\Contracts\PaymentProcessorInterface', function () {
+            return new \App\Services\Stripe(
+                [
+                    'dummy_key' => 'dummy_value',
+                ],
+                new \App\Services\SalesTaxCalculator()
+            );
+        });
+    }
+
+    /**
+     * Bootstrap services.
+     */
+    public function boot(): void
+    {
+    }
+
+
+
+    public function provides(): void 
+    {
+       return [PaymentProcessor:class];
+    }
+}

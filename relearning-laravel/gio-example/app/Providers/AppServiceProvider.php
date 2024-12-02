@@ -6,6 +6,7 @@ use App\Contracts\PaymentProcessorInterface;
 use App\Services\Stripe;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -58,5 +59,8 @@ class AppServiceProvider extends ServiceProvider
         //
         Route::pattern('transactionId', '[0-9]+'); // this is a constraint applied to all routes that have a parameter named 'id'
         Route::pattern('fileId', '[0-9]+'); // this is a constraint applied to all routes that have a parameter named 'id'
+
+
+        View::share('title', 'MY LARAVEL APP'); // with this call, we share this data with all the views of our app (this key, 'name', of value 'MY LARAVEL APP').
     }
 }
